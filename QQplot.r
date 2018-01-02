@@ -33,6 +33,20 @@ qqplotdata <- function(logpvector){
     return(qqdata)
 }
 
+# convert -log10(P) values to as.character(P)
+log10toP <- function(log10P){
+    log10P <- abs(as.numeric(log10P))
+    if(is.na(log10P)) return(NA)
+    if(log10P > 300){
+        part1 <- log10P%/%100*100
+        part2 <- log10P-part1
+        P <- format(signif(10^-part2,3), scientific = T)
+        P <- paste(as.numeric(gsub("e-.+","",P)),"E-",as.numeric(gsub(".+-","",P),sep="")+part1,sep="")
+    } else {
+        P <- signif(10^-log10P,3)
+    }
+    return(as.character(P))
+}
 
 option_list <- list(
   make_option("--input", type="character", default="",
@@ -69,10 +83,11 @@ args <- parse_args(parser, positional_arguments = 0)
 opt <- args$options
 print(opt)
 
+
 #make sure maf or af are provided since defaults removed
 if (is.na(opt$maf) && is.na(opt$af)){
     stop("Please provide either --maf or --af\n")
-}
+}    
 
 # horizontal lines and corresponding colors
 yLine <- c(-log10(5E-8))
@@ -82,13 +97,14 @@ colLine <- c("red")
 gwas <- fread(opt$input)
 
 if(!opt$log10p) {
-    gwas$log10P <- -log10(gwas[[opt$p]])
+    gwas[[opt$pvalue]][which(gwas[[opt$pvalue]] == 0)] <- 2e-308 #if pvalue is 0 convert to smallest of R's precision
+    gwas$log10P <- -log10(gwas[[opt$pvalue]])
     ycol <- "log10P"
-} else {
+} else { 
     ycol <- opt$pvalue
 }
 
-if (opt$af) { #if allele frequency not minor allele frequency, convert to maf
+if (!is.na(opt$af)) { #if allele frequency not minor allele frequency, convert to maf
     gwas$maf<-gwas[[opt$af]]
     gwas$maf[which(gwas$maf > 0.5)] <- 1 - gwas$maf[which(gwas$maf > 0.5)] #turn AF into MAF
     mafcol<-"maf"
@@ -98,7 +114,7 @@ if (opt$af) { #if allele frequency not minor allele frequency, convert to maf
     minMAF <- min(gwas[[opt$maf]])
 }
 
-#remove markers with NA for maf or pvalue
+#subset to maf and p.value
 gwas <- na.omit(data.frame(gwas[,c(mafcol,ycol),with=F]))
 
 # Determine frequency bins and create variable for binned QQ plot
@@ -135,7 +151,7 @@ legendtext <- paste0("MAF=",fbin,"; N SNPs=",format(fN,big.mark=",",scientific=F
 
 
 ## QQ plot by binned frequencies
-if (opt$pdf==TRUE) { #add functionality for pdf, default for height/width/point size are customized for png
+if (opt$pdf==TRUE) { #plot as pdf, default for height/width/point size are customized for png
     pdf(filename = paste0(opt$prefix,"_QQ.png"), width = opt$width, height = opt$height, pointsize = opt$pointsize)
 } else {
     png(filename = paste0(opt$prefix,"_QQ.png"), width = opt$width, height = opt$height, pointsize = opt$pointsize)
