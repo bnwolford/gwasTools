@@ -65,12 +65,14 @@ colLine <- c("red")
 gwas <- fread(opt$input)
 
 if(!opt$log10p) {
-	gwas$log10P <- -log10(gwas[[opt$pvalue]])
-	ycol <- "log10P"
+    gwas[[opt$pvalue]][which(gwas[[opt$pvalue]] == 0)] <- 2e-308 #if pvalue is 0 convert to smallest of R's precision
+    gwas$log10P <- -log10(gwas[[opt$pvalue]])
+    ycol <- "log10P"
 } else {
-	ycol <- opt$pvalue
+    ycol <- opt$pvalue
 }
 
+#subset to chr,pos,pvalue
 gwas <- na.omit(data.frame(gwas[,c(chrcol,poscol,ycol),with=F]))
 Nmarkers <- dim(gwas)[1]
 
