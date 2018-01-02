@@ -49,8 +49,10 @@ option_list <- list(
     help="Height QQ plot in pixel [default=900]"),
   make_option("--pointsize", type="numeric", default=16,
     help="Point size of plots [default=16]"),
-  make_option("--maf", type="character", default="MAF",
-    help="name of column with MAF [default='MAF']"),
+  make_option("--maf", type="character", default=NA,
+    help="name of column with MAF"), 
+  make_option("--af",type="character", default=NA,
+    help="name of column with AF"),
   make_option("--pvalue", type="character", default="PVALUE",
     help="name of column with p.value [default='PVALUE']"),
   make_option("--log10p", type="logical", default=F,
@@ -65,26 +67,41 @@ args <- parse_args(parser, positional_arguments = 0)
 opt <- args$options
 print(opt)
 
+#make sure maf or af are provided since defaults removed
+if (is.na(opt$maf) && is.na(opt$af)){
+    stop("Please provide either --maf or --af\n")
+}
+
 # horizontal lines and corresponding colors
 yLine <- c(-log10(5E-8))
 colLine <- c("red")
 
+#read file
 gwas <- fread(opt$input)
 
 if(!opt$log10p) {
-	gwas$log10P <- -log10(gwas[[opt$p]])
-	ycol <- "log10P"
+    gwas$log10P <- -log10(gwas[[opt$p]])
+    ycol <- "log10P"
 } else {
-	ycol <- opt$pvalue
+    ycol <- opt$pvalue
 }
 
-gwas <- na.omit(data.frame(gwas[,c(opt$maf,ycol),with=F]))
+if (opt$af) { #if allele frequency not minor allele frequency, convert to maf
+    gwas$maf<-gwas[[opt$af]]
+    gwas$maf[which(gwas$maf > 0.5)] <- 1 - gwas$maf[which(gwas$maf > 0.5)] #turn AF into MAF
+    mafcol<-"maf"
+    minMAF <- min(gwas[[mafcol]])
+} else { #use maf provided
+    mafcol<-opt$maf
+    minMAF <- min(gwas[[opt$maf]])
+}
 
-minMAF <- min(gwas[[opt$maf]])
+#remove markers with NA for maf or pvalue
+gwas <- na.omit(data.frame(gwas[,c(mafcol,ycol),with=F]))
 
 # Determine frequency bins and create variable for binned QQ plot
 freqbins <- c(c(0.5,0.05,0.005,0.001,0)[which(c(0.5,0.05,0.005,0.001,0) > floor(minMAF*1000000)/1000000)],floor(minMAF*1000000)/1000000)
-gwas$freqbin <- cut(gwas[[opt$maf]], freqbins,include.lowest=T)
+gwas$freqbin <- cut(gwas[[mafcol]], freqbins,include.lowest=T)
 freqtable <- table(gwas$freqbin)
 freqtable <- freqtable[order(-as.numeric(gsub("[\\[\\(](.+),.+","\\1",names(freqtable))))]
 freqtable <- freqtable[freqtable > 0]
