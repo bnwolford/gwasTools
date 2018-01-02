@@ -58,7 +58,9 @@ option_list <- list(
   make_option("--log10p", type="logical", default=F,
     help="Input p.value column with -log10(p.value) [default=F]"),    
   make_option("--maintitle", type="character", default="",
-    help="Plot title")  
+    help="Plot title"),
+  make_option("--pdf",type="logical",default=F,
+    help="Plot as pdf [default=F]")
 )
 
 parser <- OptionParser(usage="%prog [options]", option_list=option_list)
@@ -131,8 +133,13 @@ for(f in 1:length(freqtable)){
 legendtext <- paste0("MAF=",fbin,"; N SNPs=",format(fN,big.mark=",",scientific=FALSE))
 
 
+
 ## QQ plot by binned frequencies
-png(filename = paste0(opt$prefix,"_QQ.png"), width = opt$width, height = opt$height, pointsize = opt$pointsize)
+if (opt$pdf==TRUE) { #add functionality for pdf, default for height/width/point size are customized for png
+    pdf(filename = paste0(opt$prefix,"_QQ.png"), width = opt$width, height = opt$height, pointsize = opt$pointsize)
+} else {
+    png(filename = paste0(opt$prefix,"_QQ.png"), width = opt$width, height = opt$height, pointsize = opt$pointsize)
+}
 	xlim <- c(0,max(fx,na.rm=T))
 	ylim <- c(0,max(fy,na.rm=T))
 	maxY <- max(fy,na.rm=T)
