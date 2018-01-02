@@ -48,6 +48,16 @@ log10toP <- function(log10P){
     return(as.character(P))
 }
 
+#calculate lambda for genomic correction
+lambdaGC<-function(log10P){
+    denom<-qchisq(0.5, df=1)
+    num<-qchisq(median(log10P),df=1,lower.tail=F)
+    lam<-num/denom
+    return(lam)
+}
+    
+
+
 option_list <- list(
   make_option("--input", type="character", default="",
     help="Input file, tab delimited"),   
@@ -124,6 +134,9 @@ freqtable <- table(gwas$freqbin)
 freqtable <- freqtable[order(-as.numeric(gsub("[\\[\\(](.+),.+","\\1",names(freqtable))))]
 freqtable <- freqtable[freqtable > 0]
 
+#initialize variables to return lambda values per MAF bin
+lambda_file_name<-paste0(opt$prefix,"_lambda.txt")
+lambda_df<-NULL
 
 ## Generate QQ plot data by frequency bin
 fbin <- character(0)
@@ -138,17 +151,20 @@ for(f in 1:length(freqtable)){
 	fbin <- c(fbin,names(freqtable)[f])
 	fsnps <- which(gwas$freqbin ==names(freqtable)[f])
 	plotdata <- qqplotdata(gwas[[ycol]][fsnps])
+        lambda<-lambdaGC(gwas[[ycol]][fsnps]) #calculate lambda for this bin
+        lambda_df<-rbind(lambda_df,data.frame(lambda=lambda,frequency_bin=fbin[f]))
 	fN <- c(fN,freqtable[f])
 	fx <- c(fx,plotdata$e)
 	fy <- c(fy,plotdata$o)
 	fcol <- c(fcol,rep(allcols[f],length(plotdata$o)))
 	conf[[f]] <- data.frame('x'=c(plotdata$e,rev(plotdata$e)),
-							'y'=c(plotdata$c95,rev(plotdata$c05)))
+                                'y'=c(plotdata$c95,rev(plotdata$c05)))
 	legendcol <- c(legendcol,allcols[f])
 }
 legendtext <- paste0("MAF=",fbin,"; N SNPs=",format(fN,big.mark=",",scientific=FALSE))
 
-
+#write data frame of lambda values
+write.table(x=lambda_df,file=lambda_file_name,col.names=T,row.names=F,quote=F,sep="\t")
 
 ## QQ plot by binned frequencies
 if (opt$pdf==TRUE) { #plot as pdf, default for height/width/point size are customized for png
