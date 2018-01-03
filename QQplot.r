@@ -54,6 +54,7 @@ lambdaGC<-function(log10P){
     denom<-qchisq(0.5, df=1) #calculate denominator
     char<-sapply(log10P,log10toP) #convert from log10P to character(P) vector
     numer<-sapply(char,function(x) {as.numeric(x)}) #convert to numeric vector
+    print(summary(numer)) #print summary of p-values
     num<-qchisq(median(numer),df=1,lower.tail=F) #calculate numerator
     lam<-num/denom #calculate lambda
     return(lam)
