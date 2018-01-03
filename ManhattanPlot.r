@@ -34,9 +34,22 @@ option_list <- list(
   make_option("--coltop", type="logical", default=F,
     help="Highlight only markers above the significance threshold [default=F]"),    	
   make_option("--maintitle", type="character", default="",
-    help="Plot title")  
-)
-
+    help="Plot title"),
+  make_option("--af",type="character",default="AF",
+    help="name of column with allele frequency [default='AF']"), 
+  make_option("--ac",type="character",default="AC",
+    help="name of column with allele count [default='AC']"),
+  make_option("--maf",type="character",default="MAF",
+    help="name of column with minor allele frequency [default='MAF']"),
+  make_option("--mac",type="character",default="MAC",
+    help="name of column with minor allele count [default='MAC']"),
+  make_option("--sample.size",type="character",default="N",
+    help="name of column with sample size, required to convert allele count to to minor allele count [default='N']"),
+  make_option("--minMAF",type="numeric", default=0.0,
+    help="minimum MAF of variants for plotting [default=0.0]"),
+  make_option("--minMAC",type="numeric",default=0,
+    help="minimum MAC of variants for plotting [default=0]")
+  )
 parser <- OptionParser(usage="%prog [options]", option_list=option_list)
 
 args <- parse_args(parser, positional_arguments = 0)
@@ -70,6 +83,36 @@ if(!opt$log10p) {
 } else {
     ycol <- opt$pvalue
 }
+
+#filter results by MAF or MAC 
+if (opt$minMAF > 0) { 
+    if (opt$minMAC > 0 ) {
+        stop("Please only provide either --minMAF or --minMAC but not both\n")
+    } else {
+        if (opt$maf %in% colnames(gwas)) {
+            gwas <- gwas[gwas[[opt$maf]] > opt$minMAF] #filter by MAF
+        } else if (opt$af %in% colnames(gwas)) {
+            gwas$maf<-gwas[[opt$af]]
+            gwas$maf[which(gwas$maf > 0.5)] <- 1 - gwas$maf[which(gwas$maf > 0.5)] #convert AF to MAF
+            gwas<-gwas[maf > opt$minMAF] #filter by MAF
+        } else {
+            stop("Please provide --af or --maf arguments that match a column in input file\n")
+        }
+    }
+} else if (opt$minMAC > 0) {
+    if (opt$mac %in% colnames(gwas)) {
+        gwas<-gwas[gwas[[opt$mac]] > opt$minMAC] #filter by MAC
+    } else if (opt$ac %in% colnames(gwas)) {
+        gwas$mac<-gwas[[opt$ac]]
+        gwas$mac[which(gwas$mac > gwas[[opt$sample.size]])] <- 2*gwas[[opt$sample.size]][which(gwas$mac > gwas[[opt$sample.size]])] - gwas$mac[which(gwas$mac > gwas[[opt$sample.size]])] #convert to MAC
+        gwas<-gwas[mac > opt$minMAC] #filter by MAC
+    } else {
+        stop("Please provide --ac or --mac arguments that match a column in input file\n")
+    }
+} else {
+    warning("Results are not filtered by MAF or MAC\n")
+}
+        
 
 #subset to chr,pos,pvalue
 gwas <- na.omit(data.frame(gwas[,c(chrcol,poscol,ycol),with=F]))
@@ -131,28 +174,29 @@ chrs <- fixChr[chrs]
 
 # Highlight candidate regions
 if(dim(candidateRegions)[1]>0){
-	a <- 0
-	while(a < dim(candidateRegions)[1]){
-		a <- a + 1 
-		if(!opt$coltop){
-			overlap <- which(plotdata$CHR == candidateRegions$CHROM[a] &
-						 plotdata$POS >= candidateRegions$START[a] &
-						 plotdata$POS <= candidateRegions$END[a] &
-						 is.na(plotdata$highlightColor)
-					)
-		} else {
-			overlap <- which(plotdata$CHR == candidateRegions$CHROM[a] &
-						 plotdata$POS >= candidateRegions$START[a] &
-						 plotdata$POS <= candidateRegions$END[a] &
-						 is.na(plotdata$highlightColor) &
-				 		 plotdata$log10P >= yLine
-					)
-		}
-		if(length(overlap)==0) next
-		plotdata$highlightColor[overlap] <- candidateRegions$COL[a]
-		plotdata$pcol[overlap] <- NA
-	}
+    a <- 0
+    while(a < dim(candidateRegions)[1]){
+        a <- a + 1 
+        if(!opt$coltop){
+            overlap <- which(plotdata$CHR == candidateRegions$CHROM[a] &
+                             plotdata$POS >= candidateRegions$START[a] &
+                             plotdata$POS <= candidateRegions$END[a] &
+                             is.na(plotdata$highlightColor)
+                             )
+        } else {
+            overlap <- which(plotdata$CHR == candidateRegions$CHROM[a] &
+                             plotdata$POS >= candidateRegions$START[a] &
+                             plotdata$POS <= candidateRegions$END[a] &
+                             is.na(plotdata$highlightColor) &
+                             plotdata$log10P >= yLine
+                             )
+        }
+        if(length(overlap)==0) next
+        plotdata$highlightColor[overlap] <- candidateRegions$COL[a]
+        plotdata$pcol[overlap] <- NA
+    }
 }
+
 
 # Manhattan plot
 png(filename = paste0(opt$prefix,"_Manhattan.png"), width = opt$width, height = opt$height, pointsize = opt$pointsize)
@@ -161,7 +205,7 @@ png(filename = paste0(opt$prefix,"_Manhattan.png"), width = opt$width, height = 
     y = plotdata$log10P
     maxY <- max(y,na.rm=T)
 
-	# Version with two y axes
+    # Version with two y axes
     if(maxY > opt$break.top){
         # Manhattan plot with two different y axis scales
 
