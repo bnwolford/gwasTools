@@ -73,10 +73,18 @@ option_list <- list(
     help="Height QQ plot in pixel [default=900]"),
   make_option("--pointsize", type="numeric", default=16,
     help="Point size of plots [default=16]"),
-  make_option("--maf", type="character", default=NA,
-    help="name of column with MAF"), 
-  make_option("--af",type="character", default=NA,
-    help="name of column with AF"),
+  make_option("--maf", type="character", default='MAF',
+    help="name of column with MAF [default='MAF']"), 
+  make_option("--af",type="character", default='AF',
+    help="name of column with AF [default='AF']"),
+  make_option("--mac",type="character",defualt="MAC",
+    help="name of column with MAC [default='MAC']"),
+  make_option("--ac",type="character",default="AC",
+    help="name of column with AC [default='AC']"),
+  make_option("--minMAF",type="numeric", default=0.0,
+    help="minimum MAF of variants for plotting [default=0.0]"),
+  make_option("--minMAC",type="numeric",default=0,
+    help="minimum MAC of variants for plotting [default=0]"),
   make_option("--pvalue", type="character", default="PVALUE",
     help="name of column with p.value [default='PVALUE']"),
   make_option("--log10p", type="logical", default=F,
@@ -93,12 +101,6 @@ args <- parse_args(parser, positional_arguments = 0)
 opt <- args$options
 print(opt)
 
-
-#make sure maf or af are provided since defaults removed
-if (is.na(opt$maf) && is.na(opt$af)){
-    stop("Please provide either --maf or --af\n")
-}    
-
 # horizontal lines and corresponding colors
 yLine <- c(-log10(5E-8))
 colLine <- c("red")
@@ -106,23 +108,49 @@ colLine <- c("red")
 #read file
 gwas <- fread(opt$input)
 
+#convert to -log10pvalue or use existing values in that scale
 if(!opt$log10p) {
-    #gwas[[opt$pvalue]][which(gwas[[opt$pvalue]] == 0)] <- 2e-308 #if pvalue is 0 convert to smallest of R's precision
     gwas$log10P <- -log10(gwas[[opt$pvalue]])
     ycol <- "log10P"
 } else { 
     ycol <- opt$pvalue
 }
 
-if (!is.na(opt$af)) { #if allele frequency not minor allele frequency, convert to maf
-    gwas$maf<-gwas[[opt$af]]
-    gwas$maf[which(gwas$maf > 0.5)] <- 1 - gwas$maf[which(gwas$maf > 0.5)] #turn AF into MAF
-    mafcol<-"maf"
-    minMAF <- min(gwas[[mafcol]])
-} else { #use maf provided
+#establish maf column for qqplot
+if (opt$maf %in% colnames(gwas)) { 
     mafcol<-opt$maf
-    minMAF <- min(gwas[[opt$maf]])
+    minMAF<-min(gwas[[opt$maf]]) #minMAF of all input data
+} else if (opt$af %in% colnames(gwas)) {
+    gwas$maf<-gwas[[opt$af]]
+    gwas$maf[which(gwas$maf > 0.5)] <- 1 - gwas$maf[which(gwas$maf > 0.5)] #convert AF to MAF
+    mafcol<-"maf"
+    minMAF<-min(gwas[[mafcol]]) #minMAF of all input data
+} else {
+    stop("Please provide --af or --maf arguments that match a column in input file\n")
 }
+
+#filter by minMAF or minMAC if provided
+if (opt$minMAF > 0) { #minMAF provided so filter by MAF
+    if (opt$minMAC > 0 ) {
+        stop("Please only provide either --minMAF or --minMAC but not both\n")
+    } else {
+        gwas <- gwas[gwas[[mafcol]] > opt$minMAF] #filter by MAF
+    }
+} else if (opt$minMAC > 0) { #minMAC provided so filter by MAC
+    if (opt$mac %in% colnames(gwas)) {
+        gwas<-gwas[gwas[[opt$mac]] > opt$minMAC] #filter by MAC
+    } else if (opt$ac %in% colnames(gwas)) {
+        gwas$mac<-gwas[[opt$ac]]
+        gwas$mac[which(gwas$mac > gwas[[opt$sample.size]])] <- 2*gwas[[opt$sample.size]][which(gwas$mac > gwas[[opt$sample.size]])] - gwas$mac[which(gwas$mac > gwas[[opt$sample.size]])] #convert to MAC
+        gwas<-gwas[mac > opt$minMAC] #filter by MAC
+    } else {
+        stop("Please provide --ac or --mac arguments that match a column in input file\n")
+    }
+} else {
+    warning("Results are not filtered by MAF or MAC\n")
+}
+    
+# TO DO: plot  bins by MAC rather than MAF
 
 #subset to maf and p.value
 gwas <- na.omit(data.frame(gwas[,c(mafcol,ycol),with=F]))
