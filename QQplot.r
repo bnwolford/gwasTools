@@ -54,13 +54,11 @@ lambdaGC<-function(log10P){
     denom<-qchisq(0.5, df=1) #calculate denominator
     char<-sapply(log10P,log10toP) #convert from log10P to character(P) vector
     numer<-sapply(char,function(x) {as.numeric(x)}) #convert to numeric vector
-    num<-qchisq(median(log10P),df=1,lower.tail=F) #calculate numerator
+    num<-qchisq(median(numer),df=1,lower.tail=F) #calculate numerator
     lam<-num/denom #calculate lambda
     return(lam)
 }
     
-
-
 option_list <- list(
   make_option("--input", type="character", default="",
     help="Input file, tab delimited"),   
