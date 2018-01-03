@@ -77,10 +77,12 @@ option_list <- list(
     help="name of column with MAF [default='MAF']"), 
   make_option("--af",type="character", default='AF',
     help="name of column with AF [default='AF']"),
-  make_option("--mac",type="character",defualt="MAC",
+  make_option("--mac",type="character",default="MAC",
     help="name of column with MAC [default='MAC']"),
   make_option("--ac",type="character",default="AC",
     help="name of column with AC [default='AC']"),
+  make_option("--sample.size",type="character",default="N",
+    help="name of column with sample size, required to convert allele count to to minor allele count [default='N']"),
   make_option("--minMAF",type="numeric", default=0.0,
     help="minimum MAF of variants for plotting [default=0.0]"),
   make_option("--minMAC",type="numeric",default=0,
@@ -108,7 +110,7 @@ colLine <- c("red")
 #read file
 gwas <- fread(opt$input)
 
-#convert to -log10pvalue or use existing values in that scale
+#convert pvalues to -log10pvalue or use existing values in that scale
 if(!opt$log10p) {
     gwas$log10P <- -log10(gwas[[opt$pvalue]])
     ycol <- "log10P"
@@ -149,7 +151,7 @@ if (opt$minMAF > 0) { #minMAF provided so filter by MAF
 } else {
     warning("Results are not filtered by MAF or MAC\n")
 }
-    
+
 # TO DO: plot  bins by MAC rather than MAF
 
 #subset to maf and p.value
