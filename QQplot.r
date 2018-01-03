@@ -37,6 +37,7 @@ qqplotdata <- function(logpvector){
 log10toP <- function(log10P){
     log10P <- abs(as.numeric(log10P))
     if(is.na(log10P)) return(NA)
+    if(log10P==Inf) return(as.character(0))
     if(log10P > 300){
         part1 <- log10P%/%100*100
         part2 <- log10P-part1
@@ -50,9 +51,11 @@ log10toP <- function(log10P){
 
 #calculate lambda for genomic correction
 lambdaGC<-function(log10P){
-    denom<-qchisq(0.5, df=1)
-    num<-qchisq(median(log10P),df=1,lower.tail=F)
-    lam<-num/denom
+    denom<-qchisq(0.5, df=1) #calculate denominator
+    char<-sapply(log10P,log10toP) #convert from log10P to character(P) vector
+    numer<-sapply(char,function(x) {as.numeric(x)}) #convert to numeric vector
+    num<-qchisq(median(log10P),df=1,lower.tail=F) #calculate numerator
+    lam<-num/denom #calculate lambda
     return(lam)
 }
     
@@ -159,7 +162,7 @@ gwas <- na.omit(data.frame(gwas[,c(mafcol,ycol),with=F]))
 
 # Determine frequency bins and create variable for binned QQ plot
 freqbins <- c(c(0.5,0.05,0.005,0.001,0)[which(c(0.5,0.05,0.005,0.001,0) > floor(minMAF*1000000)/1000000)],floor(minMAF*1000000)/1000000)
-gwas$freqbin <- cut(gwas[[mafcol]], freqbins,include.lowest=T)
+gwas$freqbin <- cut(gwas[[mafcol]], freqbins, include.lowest=T)
 freqtable <- table(gwas$freqbin)
 freqtable <- freqtable[order(-as.numeric(gsub("[\\[\\(](.+),.+","\\1",names(freqtable))))]
 freqtable <- freqtable[freqtable > 0]
@@ -182,7 +185,7 @@ for(f in 1:length(freqtable)){
 	fsnps <- which(gwas$freqbin ==names(freqtable)[f])
 	plotdata <- qqplotdata(gwas[[ycol]][fsnps])
         lambda<-lambdaGC(gwas[[ycol]][fsnps]) #calculate lambda for this bin
-        lambda_df<-rbind(lambda_df,data.frame(lambda=lambda,frequency_bin=fbin[f]))
+        lambda_df<-rbind(lambda_df,data.frame(lambda=lambda,frequency_bin=fbin[f])) #make lambda data frame
 	fN <- c(fN,freqtable[f])
 	fx <- c(fx,plotdata$e)
 	fy <- c(fy,plotdata$o)
