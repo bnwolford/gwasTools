@@ -22,7 +22,7 @@ option_list <- list(
   make_option("--hitregion", type="character", default="",
     help="File with candidate regions, CHROM;START;END;COL;LEGENDTEXT [default='']"),
   make_option("--chr", type="character", default="CHR",
-    help="name of column with chromosome [default='CHR']"),
+    help="name of column with chromosome, should be in order 1-22 [default='CHR']"),
   make_option("--pos", type="character", default="POS",
     help="name of column with position [default='POS']"),
   make_option("--pvalue", type="character", default="PVALUE",
