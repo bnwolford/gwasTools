@@ -121,6 +121,8 @@ if(!opt$log10p) {
     ycol <- opt$pvalue
 }
 
+gwas<-gwas[complete.cases(gwas),] #remove NAs
+
 #establish maf column for qqplot
 if (opt$maf %in% colnames(gwas)) { 
     mafcol<-opt$maf
