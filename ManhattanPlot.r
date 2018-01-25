@@ -78,6 +78,7 @@ colLine <- c("red")
 gwas <- fread(opt$input)
 
 if(!opt$log10p) {
+    gwas[[opt$pvalue]]<- as.numeric(gwas[[opt$pvalue]]) #handle any NAs
     gwas$log10P <- -log10(gwas[[opt$pvalue]])
     ycol <- "log10P"
 } else {
