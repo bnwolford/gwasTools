@@ -77,6 +77,7 @@ colLine <- c("red")
 
 gwas <- fread(opt$input)
 
+
 if(!opt$log10p) {
     gwas[[opt$pvalue]]<- as.numeric(gwas[[opt$pvalue]]) #handle any NAs
     gwas$log10P <- -log10(gwas[[opt$pvalue]])
@@ -84,6 +85,8 @@ if(!opt$log10p) {
 } else {
     ycol <- opt$pvalue
 }
+
+gwas<-gwas[complete.cases(gwas),] #remove NAs
 
 #filter results by MAF or MAC 
 if (opt$minMAF > 0) { 
