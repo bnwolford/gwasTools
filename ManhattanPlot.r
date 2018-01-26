@@ -70,8 +70,7 @@ if (opt$hitregion != ""){
 
 chrcol <- opt$chr
 poscol <- opt$pos
-gwas[[chrcol]]<-as.numeric(gwas[[chrcol]])
-gwas[[poscol]]<-as.numeric(gwas[[poscol]])
+
 
 
 # horizontal lines and corresponding colors
@@ -79,7 +78,8 @@ yLine <- c(-log10(opt$sigthreshold))
 colLine <- c("red")
 
 gwas <- fread(opt$input)
-
+gwas[[chrcol]]<-as.numeric(gwas[[chrcol]])
+gwas[[poscol]]<-as.numeric(gwas[[poscol]])
 
 if(!opt$log10p) {
     gwas[[opt$pvalue]]<- as.numeric(gwas[[opt$pvalue]]) #handle any NAs
