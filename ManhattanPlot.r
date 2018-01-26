@@ -70,6 +70,9 @@ if (opt$hitregion != ""){
 
 chrcol <- opt$chr
 poscol <- opt$pos
+gwas[[chrcol]]<-as.numeric(gwas[[chrcol]])
+gwas[[poscol]]<-as.numeric(gwas[[poscol]])
+
 
 # horizontal lines and corresponding colors
 yLine <- c(-log10(opt$sigthreshold))
@@ -87,6 +90,10 @@ if(!opt$log10p) {
 }
 
 gwas<-gwas[complete.cases(gwas),] #remove NAs
+
+
+print(summary(gwas))
+print(str(gwas))
 
 #filter results by MAF or MAC 
 if (opt$minMAF > 0) { 
