@@ -126,9 +126,10 @@ gwas<-gwas[complete.cases(gwas),] #remove NAs
 #establish maf column for qqplot
 if (opt$maf %in% colnames(gwas)) { 
     mafcol<-opt$maf
+    gwas[[opt$maf]]<-as.numeric(gwas[[opt$maf]])
     minMAF<-min(gwas[[opt$maf]]) #minMAF of all input data
 } else if (opt$af %in% colnames(gwas)) {
-    gwas$maf<-gwas[[opt$af]]
+    gwas$maf<-as.numeric(gwas[[opt$af]])
     gwas$maf[which(gwas$maf > 0.5)] <- 1 - gwas$maf[which(gwas$maf > 0.5)] #convert AF to MAF
     mafcol<-"maf"
     minMAF<-min(gwas[[mafcol]]) #minMAF of all input data
