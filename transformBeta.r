@@ -7,7 +7,7 @@ library("RColorBrewer")
 library("optparse")
 
 option_list <- list(
-    make_option("--input", type="character",
+    make_option("--input", type="character", default=NULL,
                 help="Input file, tab delimited"),
     make_option("--k",type="character",
                 help="Name of column with sample prevalance. Otherwise prevalence from --numCase and --numControl will be used for all genetic variants."),
@@ -39,6 +39,14 @@ args <- parse_args(parser, positional_arguments = 0)
 opt <- args$options
 print(opt)
 
+exists<-function(arg){
+    if (sum(opt == arg) > 0) {
+        return(TRUE)
+    } else {
+        return(FALSE)
+    }
+}
+    
 #check for input file
 if (!exists(opt$input)){
     stop("Please provide input file --input\n")
