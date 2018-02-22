@@ -39,6 +39,7 @@ args <- parse_args(parser, positional_arguments = 0)
 opt <- args$options
 print(opt)
 
+#function to check if argument exists
 exists<-function(arg){
     if (sum(opt == arg) > 0) {
         return(TRUE)
@@ -62,7 +63,8 @@ if (!exists(opt$input)){
 #doi:10.1038/ejhg.2016.150
 #Guidance for the utility of linear models in meta-analysis of genetic association studies of binary phenotypes
 cook_function<-function(cases,controls,beta,se,out_prefix){
-    outCook<-paste0(out_prefix,"Cook.txt")
+    print("Performing transformation based on Cook et al doi:10.1038/ejhg.2016.150\n")
+    outCook<-paste0(out_prefix,"_Cook.txt")
     frac_cases<-cases/(cases+controls)
     frac_controls<-controls/(cases+controls)
     df$BETA_T<-df[[beta]]/(frac_cases * frac_controls) #transformed beta
@@ -77,8 +79,9 @@ cook_function<-function(cases,controls,beta,se,out_prefix){
 #http://cnsgenomics.com/shiny/LMOR/
 #OR2 in paper
 lj_se<-function(se,n,beta,out_prefix){
+    print("Performing transformation based on Lloyd-Jones et al doi:10.1534/genetics.117.300360\n")
     source("shiny_lmor_func.R")
-    outLJ_SE<-paste0(out_prefix,"LloydJones_SE.txt")
+    outLJ_SE<-paste0(out_prefix,"_LloydJones_SE.txt")
     #To DO use arguments change data frame column names to be what the function expects if they're different
     res<-LmToOddsRatio(df,prev,1)
     res$BETA_SE<-log(res$OR_SE) #convert OR to Beta
@@ -87,8 +90,9 @@ lj_se<-function(se,n,beta,out_prefix){
 
 #OR1 in paper
 lj_af<-function(beta,freq,prev,out_prefix){
+    print("Performing transformation based on Lloyd-Jones et al doi:10.1534/genetics.117.300360\n")
     source("shiny_lmor_func.R")
-    outLJ_AF<-paste0(out_prefix,"LloydJones_AF.txt")
+    outLJ_AF<-paste0(out_prefix,"_LloydJones_AF.txt")
     #To DO use arguments to change data frame column names to be what the function expects if they're different
     res<-LmToOddsRatio(df,prev,0)
     res$BETA_AF<-log(res$OR) #convert OR to Beta
