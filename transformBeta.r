@@ -10,7 +10,7 @@ option_list <- list(
     make_option("--input", type="character",
                 help="Input file, tab delimited"),
     make_option("--k",type="character",
-                help="Name of column with sample prevalance. Otherwise prevalence from --numCase and --numControl will be used for all genetic variants.")
+                help="Name of column with sample prevalance. Otherwise prevalence from --numCase and --numControl will be used for all genetic variants."),
     make_option("--beta",type="character",default="BETA",
                 help="Name of column with beta [default=BETA]"),
     make_option("--se",type="character",default="SE",
@@ -18,7 +18,7 @@ option_list <- list(
     make_option("--freq",type="character",default="FREQ",
                 help="Name of column with freq [default=FREQ]"),
     make_option("--n",type="character",default="N",
-                help="Name of column with sample size N [default=N]")
+                help="Name of column with sample size N [default=N]"),
     make_option("--stdErrTrans",type="logical",default=TRUE,
                 help="Logical for performing Lloyd-Jones et al standard error transformation (requires SE, N, BETA) [default=TRUE"),
     make_option("--afTrans",type="logical",default=TRUE,
@@ -40,7 +40,7 @@ opt <- args$options
 print(opt)
 
 #check for input file
-if (!opt$input){
+if (!exists(opt$input)){
     stop("Please provide input file --input\n")
 } else {
     file<-opt$input
@@ -103,7 +103,7 @@ df<-data.frame(dt) #conert to data frame which LmToOddsRatio expects
 ####perform Cook et al transformation
 if (opt$cook) {
     #check for required arguments
-    if (!opt$numCase | !opt$numControl | !opt$beta | !opt$se) {
+    if (!exists(opt$numCase) | !exists(opt$numControl) | !exists(opt$beta) | !exists(opt$se)) {
         stop("Please provide number of cases and controls, name of beta column and name of se column for Cook et al transformation\n")
     } else {
         cook_function(opt$numCase,opt$numControl,opt$beta,opt$se,opt$output)
@@ -113,7 +113,7 @@ if (opt$cook) {
 ####perform Llyod Jones et al standard error transformation
 if (opt$stdErrTrans) {
     #check for required arguments
-    if (!opt$se | !opt$n | !opt$beta) {
+    if (!exists(opt$se) | !exists(opt$n) | !exists(opt$beta)) {
         stop("Please provide name of columns with SE, N, and BETA for Lloyd-Jones et al standard error transformation\n")
     } else {
         lj_se(opt$se, opt$n, opt$beta, opt$output)
@@ -124,16 +124,16 @@ if (opt$stdErrTrans) {
 if (opt$afTrans) {
 
     #check for arguments required for prevalence
-    if (opt$k){
+    if (exists(opt$k)){
         prev<-df[[opt$k]] #use column with prevalence per variant
-    } else if (opt$numCase && opt$numControl) {
+    } else if (exists(opt$numCase) && exists(opt$numControl)) {
         prev<-cases/(cases+controls) #use prevalence for all genetic variants
     } else {
         stop("Please provide number of cases and controls or name of column with prevalence for Lloyd-Jones et al allele frequency based transformation\n")
     }
 
     #check for other required arguments
-    if (!opt$beta | !opt$freq ) {
+    if (!exists(opt$beta) || !exists(opt$freq) ) {
         stop("Please provide name of columns with SE and BETA for Lloyd-Jones et al allele frequency based transformation\n")
     } else {
         lj_af(opt$beta,optfreq,prev,opt$output)
