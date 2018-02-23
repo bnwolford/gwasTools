@@ -1,4 +1,9 @@
-#revised from Wei Zhou
+#!/usr/bin/Rscript
+
+# Copyright (c) 2018 Brooke Wolford
+# Revised from script by Dr. Wei Zhou
+# Lab of Dr. Cristen Willer and Dr. Mike Boehnke
+# University of Michigan
 
 options(stringsAsFactors=F)
 Sys.setlocale("LC_CTYPE", "C.UTF-8")
@@ -7,13 +12,11 @@ library(data.table)
 library(optparse)
 library(plotrix)
 library(ggplot2)
-# Load extra R functions
-source("/net/dumbo/home/zhowei/projects/UKBIOBANK/summary/script/helperFunctions.r")
 
 option_list <- list(
     make_option(c("-p", "--prefix"), type="character", default="",
                 help="prefix for output files"),
-    make_option("--inputfile", type="character", default="",
+    make_option("--input", type="character", default="",
                 help="inputfile, can be gzipped"),
     make_option("--VAL1", type="character", default="",
                 help="header name for value 1 for comparison"),
@@ -31,7 +34,7 @@ option_list <- list(
                 help="Calculate Pearson's correlation and print to stdout [default=TRUE]")
 )
 
-parser <- OptionParser(usage="%prog [options]", option_list=option_list)
+parser <- OptionParser(usage="%prog [options]", option_list=option_list, description="This script creates scatter plots comparing values from two columns of an input file (e.g. MAF vs Beta) and can print the Pearson's correlation to standard out.\n")
 args <- parse_args(parser, positional_arguments = 0)
 opt <- args$options
 pheno <- opt$pheno
@@ -40,10 +43,16 @@ valcol1 <- opt$VAL1
 valcol2 <- opt$VAL2
 xlabdata <- opt$labdata1
 ylabdata <- opt$labdata2
-inputfile <- opt$inputfile
+inputfile <- opt$input
 title <- opt$title
 log <- opt$negLog10
 cor <- opt$cor
+
+#check for required arguments
+if (input=="" || prefix =="" || valcol1=="" || valcol2=="") {
+    stop("Please provide --input and --output arguments\n")
+}
+
 
 #open file, even if zipped
 if (grepl('.gz',inputfile)) {
