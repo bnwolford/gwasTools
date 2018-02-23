@@ -1,5 +1,10 @@
 #!/usr/bin/Rscript
 
+# Copyright (c) 2018 Brooke Wolford
+# Revised from Dr. Sarah Graham 
+# Lab of Dr. Cristen Willer and Dr. Mike Boehnke
+# University of Michigan
+
 options(stringsAsFactors=F)
 library("plotrix")
 library("data.table")
@@ -29,7 +34,7 @@ option_list <- list(
                 help="Number of cases"),
     make_option("--numControl",type="numeric",
                 help="Number of controls"),
-    make_option("--output",type="character",default="",
+    make_option("--output",type="character",default=NULL,
                 help="Output file prefix")
       )
 parser <- OptionParser(usage="%prog [options]", option_list=option_list)
@@ -49,10 +54,15 @@ exists<-function(arg){
 }
     
 #check for input file
-if (!exists(opt$input)){
-    stop("Please provide input file --input\n")
+if (!exists(opt$input) || !exists(opt$output)){
+    stop("Please provide input file --input and output file --output\n")
 } else {
-    file<-opt$input
+    #read in file, even if gzipped
+    if (grepl('.gz',opt$input)) {
+        file <- fread(paste(sep=" ","zcat",opt$input),header=T)
+    } else {
+        file <- fread(opt$input, header=T)
+    }
 }
 
 ##################################################################
