@@ -14,7 +14,7 @@ library("optparse")
 
 option_list <- list(
     make_option("--input", type="character", default=NULL,
-                help="Input file, tab delimited"),
+                help="Input file, tab delimited, can be gzipped"),
     make_option("--k",type="character",
                 help="Name of column with sample prevalance. Otherwise prevalence from --numCase and --numControl will be used for all genetic variants."),
     make_option("--beta",type="character",default="BETA",
