@@ -62,8 +62,7 @@ cook_function<-function(cases,controls,beta,se,out_prefix){
 #doi:10.1534/genetics.117.300360
 #Transformation of Summary Statistics from Linear Mixed Model Association on All-or-None Traits to Odds Ratio
 #http://cnsgenomics.com/shiny/LMOR/ hosts shiny_lmor_func.R
-
-#
+#derive OR based on beta and standard error
 lj_se<-function(se,n,beta,out_prefix){
     print("Performing transformation based on Lloyd-Jones et al doi:10.1534/genetics.117.300360\n")
     source("shiny_lmor_func.R")
@@ -74,7 +73,7 @@ lj_se<-function(se,n,beta,out_prefix){
     write.table(res, file=outLJ_SE,sep="\t",col.names=TRUE,row.names=FALSE,quote=FALSE)
 }
 
-#
+#derive OR based on beta and allele frequencies
 lj_af<-function(beta,freq,prev,out_prefix){
     print("Performing transformation based on Lloyd-Jones et al doi:10.1534/genetics.117.300360\n")
     source("shiny_lmor_func.R")
@@ -111,17 +110,19 @@ if (!exists(opt$input) || !exists(opt$output)){
 
 #read in file, even if gzipped
 file<-opt$input
-if grepl('.gz',file){
+if (grepl('.gz',file)){
+    cat("Reading gzipped file\n.")
     dt<-fread(paste(sep=" ","zcat",file),header=T)
 } else {
+    cat("Reading file\n.")
     dt<-fread(file) #read file
-
+}
 df<-data.frame(dt) #convert to data frame which LmToOddsRatio expects
 
 ####perform Cook et al transformation
 if (opt$cook) {
     #check for required arguments
-    if (!exists(opt$numCase) | !exists(opt$numControl) | !exists(opt$beta) | !exists(opt$se)) {
+    if (!exists(opt$numCase) || !exists(opt$numControl) || !exists(opt$beta) || !exists(opt$se)) {
         stop("Please provide number of cases and controls, name of beta column and name of se column for Cook et al transformation\n")
     } else {
         cook_function(opt$numCase,opt$numControl,opt$beta,opt$se,opt$output)
@@ -131,7 +132,7 @@ if (opt$cook) {
 ####perform Llyod Jones et al standard error transformation
 if (opt$stdErrTrans) {
     #check for required arguments
-    if (!exists(opt$se) | !exists(opt$n) | !exists(opt$beta)) {
+    if (!exists(opt$se) || !exists(opt$n) || !exists(opt$beta)) {
         stop("Please provide name of columns with SE, N, and BETA for Lloyd-Jones et al standard error transformation\n")
     } else {
         lj_se(opt$se, opt$n, opt$beta, opt$output)
