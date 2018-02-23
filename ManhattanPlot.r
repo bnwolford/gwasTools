@@ -19,8 +19,8 @@ option_list <- list(
     help="Height Manhattan plot in pixel [default=900]"),
   make_option("--pointsize", type="numeric", default=16,
     help="Point size of plots [default=16]"),
-  make_option("--hitregion", type="character", default="",
-    help="File with candidate regions, CHROM;START;END;COL;LEGENDTEXT [default='']"),
+  make_option("--hitregion", type="character", default=".",
+    help="File with candidate regions, CHROM;START;END;COL;LEGENDTEXT [default='.']"),
   make_option("--chr", type="character", default="CHR",
     help="name of column with chromosome, should be in order 1-22 [default='CHR']"),
   make_option("--pos", type="character", default="POS",
@@ -56,7 +56,7 @@ args <- parse_args(parser, positional_arguments = 0)
 opt <- args$options
 print(opt)
 
-if (opt$hitregion != ""){
+if (opt$hitregion != "."){
 	candidateRegions <- read.table(opt$hitregion,sep="\t",header=T,check.names=F,comment.char="")
 } else {
 	candidateRegions <- data.frame(
@@ -71,13 +71,17 @@ if (opt$hitregion != ""){
 chrcol <- opt$chr
 poscol <- opt$pos
 
-
-
 # horizontal lines and corresponding colors
 yLine <- c(-log10(opt$sigthreshold))
 colLine <- c("red")
 
-gwas <- fread(opt$input)
+#open file, even if zipped
+if (grepl('.gz',opt$input)) {
+    gwas <- fread(paste(sep=" ","zcat",opt$input),header=T)
+} else {
+    gwas <- fread(opt$input, header=T)
+}
+
 gwas[[chrcol]]<-as.numeric(gwas[[chrcol]])
 gwas[[poscol]]<-as.numeric(gwas[[poscol]])
 
