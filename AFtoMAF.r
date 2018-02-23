@@ -1,3 +1,9 @@
+#!/usr/bin/Rscript
+
+#Copyright (c) 2018 Brooke Wolford
+# Lab of Dr. Cristen Willer and Dr. Mike Boehnke
+# University of Michigan
+
 options(stringsAsFactors=F)
 library(data.table)
 library(optparse)
@@ -7,19 +13,24 @@ library(optparse)
 option_list <- list(
   make_option("--input", type="character", default="",
     help="Input file, tab delimited"),   
-  make_option("--prefix", type="character", default="",
-    help="Prefix of output files"),   
+  make_option("--output", type="character", default="",
+    help="Name for output file"),   
   make_option("--af",type="character",default="AF",
     help="name of column with AF [default='AF']"),
   make_option("--colName",type="character",default="MAF",
     help="name of new column with MAF [default='MAF']") 
 )
 
-parser <- OptionParser(usage="%prog [options]", option_list=option_list)
+parser <- OptionParser(usage="%prog [options]", option_list=option_list, description="This script converts allele frequency to minor allele frequency in a new column titled MAF or --colName and writes the output to a new file ")
 
 args <- parse_args(parser, positional_arguments = 0)
 opt <- args$options
 print(opt)
+
+#check for required arguments
+if (opt$input=="" || opt$output=="") {
+    stop("Please provide --input and --output arguments\n")
+}
 
 #read file
 file <- fread(opt$input)
@@ -31,9 +42,10 @@ if (opt$af %in% colnames(file)) { #check maf column exists
     stop("Please provide --af argument that match a column in input file\n")
 }
 
+#rename column to MAF or provided --colName
 colnames(file)[colnames(file)=="maf"] <- opt$colName
 
 #write file
-filename=paste0(opt$prefix,"_minor.txt")
+filename<-opt$output
 write.table(x=file,file=filename,col.names=T,row.names=F,quote=F,sep="\t")
 
