@@ -31,9 +31,9 @@ option_list <- list(
                 help="Logical for performing Lloyd-Jones et al allele frequency based transformation (requires BETA, FREQ, and k or numCases and numControls) [default=TRUE]"),
     make_option("--cook",type="logical",default=TRUE,
                 help="Logical for performing Cook et al transformation (requires BETA, SE, numCase, numControl) [default=TRUE]"),
-    make_option("--numCase", type="numeric",
+    make_option("--numCase", type="numeric", default=NULL,
                 help="Number of cases"),
-    make_option("--numControl",type="numeric",
+    make_option("--numControl",type="numeric", default=NULL,
                 help="Number of controls"),
     make_option("--output",type="character",default=NULL,
                 help="Output file prefix")
@@ -86,7 +86,7 @@ lj_af<-function(beta,freq,prev,out_prefix){
 
 #function to check if argument exists
 exists<-function(arg){
-    if (sum(opt == arg) > 0) {
+    if (sum(opt == as.factor(arg)) > 0) {
         return(TRUE)
     } else {
         return(FALSE)
@@ -114,10 +114,11 @@ if (grepl('.gz',file)){
     cat("Reading gzipped file\n.")
     dt<-fread(paste(sep=" ","zcat",file),header=T)
 } else {
-    cat("Reading file\n.")
+    cat("Reading file.\n")
     dt<-fread(file) #read file
 }
 df<-data.frame(dt) #convert to data frame which LmToOddsRatio expects
+
 
 ####perform Cook et al transformation
 if (opt$cook) {
