@@ -1,3 +1,10 @@
+#!/usr/bin/Rscript
+
+# Copyright (c) 2018 Brooke Wolford
+# Revised from Dr. Lars Fritsche
+# Lab of Dr. Cristen Willer and Dr. Mike Boehnke
+# University of Michigan
+
 options(stringsAsFactors=F)
 library("plotrix")
 library("data.table")
@@ -6,7 +13,7 @@ library("optparse")
 
 option_list <- list(
   make_option("--input", type="character", default="",
-    help="Input file, tab delimited"),   
+    help="Input file, tab delimited, can be gzipped"),   
   make_option("--prefix", type="character", default="",
     help="Prefix of output files"),   
   make_option("--top.size", type="numeric", default=0.125,
@@ -48,9 +55,11 @@ option_list <- list(
   make_option("--minMAF",type="numeric", default=0.0,
     help="minimum MAF of variants for plotting [default=0.0]"),
   make_option("--minMAC",type="numeric",default=0,
-    help="minimum MAC of variants for plotting [default=0]")
+    help="minimum MAC of variants for plotting [default=0]"),
+  make_option("--pdf",type="logical",default=F,
+    help="Plot as pdf [default=F]")
   )
-parser <- OptionParser(usage="%prog [options]", option_list=option_list)
+parser <- OptionParser(usage="%prog [options]", option_list=option_list, description="This script creates a Manhattan plot in png format from GWAS summary statistics\n.")
 
 args <- parse_args(parser, positional_arguments = 0)
 opt <- args$options
@@ -94,7 +103,6 @@ if(!opt$log10p) {
 }
 
 gwas<-gwas[complete.cases(gwas),] #remove NAs
-
 
 print(summary(gwas))
 print(str(gwas))
@@ -214,7 +222,11 @@ if(dim(candidateRegions)[1]>0){
 
 
 # Manhattan plot
-png(filename = paste0(opt$prefix,"_Manhattan.png"), width = opt$width, height = opt$height, pointsize = opt$pointsize)
+if (opt$pdf==TRUE) { #plot as pdf, default for height/width/point size are customized for png
+    pdf(filename = paste0(opt$prefix,"_Manhattan.png"), width = opt$width, height = opt$height, pointsize = opt$pointsize)
+} else {
+    png(filename = paste0(opt$prefix,"_Manhattan.png"), width = opt$width, height = opt$height, pointsize = opt$pointsize)
+}
     par(mar=c(5.1,5.1,4.1,1.1),las=1)
     x = plotdata$plotPos
     y = plotdata$log10P
