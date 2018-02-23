@@ -1,7 +1,8 @@
 #!/usr/bin/Rscript
 
 # Copyright (c) 2018 Brooke Wolford
-# Revised from Dr. Sarah Graham 
+# Revised from Dr. Sarah Graham
+# Implements published methods, see below
 # Lab of Dr. Cristen Willer and Dr. Mike Boehnke
 # University of Michigan
 
@@ -37,33 +38,7 @@ option_list <- list(
     make_option("--output",type="character",default=NULL,
                 help="Output file prefix")
       )
-parser <- OptionParser(usage="%prog [options]", option_list=option_list)
-
-#parse arguments
-args <- parse_args(parser, positional_arguments = 0)
-opt <- args$options
-print(opt)
-
-#function to check if argument exists
-exists<-function(arg){
-    if (sum(opt == arg) > 0) {
-        return(TRUE)
-    } else {
-        return(FALSE)
-    }
-}
-    
-#check for input file
-if (!exists(opt$input) || !exists(opt$output)){
-    stop("Please provide input file --input and output file --output\n")
-} else {
-    #read in file, even if gzipped
-    if (grepl('.gz',opt$input)) {
-        file <- fread(paste(sep=" ","zcat",opt$input),header=T)
-    } else {
-        file <- fread(opt$input, header=T)
-    }
-}
+parser <- OptionParser(usage="%prog [options]", option_list=option_list, description="This script transforms summary statistics from linear mixed models to be compatible with those from logistic/linear regression for the purposes of meta-analysis.\n")
 
 ##################################################################
 ########################## FUNCTIONS #############################
@@ -86,8 +61,9 @@ cook_function<-function(cases,controls,beta,se,out_prefix){
 ### Lloyd Jones et al Genetics 2018
 #doi:10.1534/genetics.117.300360
 #Transformation of Summary Statistics from Linear Mixed Model Association on All-or-None Traits to Odds Ratio
-#http://cnsgenomics.com/shiny/LMOR/
-#OR2 in paper
+#http://cnsgenomics.com/shiny/LMOR/ hosts shiny_lmor_func.R
+
+#
 lj_se<-function(se,n,beta,out_prefix){
     print("Performing transformation based on Lloyd-Jones et al doi:10.1534/genetics.117.300360\n")
     source("shiny_lmor_func.R")
@@ -98,7 +74,7 @@ lj_se<-function(se,n,beta,out_prefix){
     write.table(res, file=outLJ_SE,sep="\t",col.names=TRUE,row.names=FALSE,quote=FALSE)
 }
 
-#OR1 in paper
+#
 lj_af<-function(beta,freq,prev,out_prefix){
     print("Performing transformation based on Lloyd-Jones et al doi:10.1534/genetics.117.300360\n")
     source("shiny_lmor_func.R")
@@ -109,18 +85,38 @@ lj_af<-function(beta,freq,prev,out_prefix){
     write.table(res, file=outLJ_AF, sep="\t",col.names=TRUE,row.names=FALSE,quote=FALSE)
 }
 
-
+#function to check if argument exists
+exists<-function(arg){
+    if (sum(opt == arg) > 0) {
+        return(TRUE)
+    } else {
+        return(FALSE)
+    }
+}
 
 #######################################################
 ##################### MAIN #############################
 #######################################################
 
-#This script converts betas from linear mixed models to beta/se/OR comparable to logistic regression output for use in meta-analysis
 
-#read in data
+#parse arguments
+args <- parse_args(parser, positional_arguments = 0)
+opt <- args$options
+print(opt)
+
+#check for input file and output file arguments
+if (!exists(opt$input) || !exists(opt$output)){
+    stop("Please provide input file --input and output file --output\n")
+}
+
+#read in file, even if gzipped
 file<-opt$input
-dt<-fread(file) #read file
-df<-data.frame(dt) #conert to data frame which LmToOddsRatio expects
+if grepl('.gz',file){
+    dt<-fread(paste(sep=" ","zcat",file),header=T)
+} else {
+    dt<-fread(file) #read file
+
+df<-data.frame(dt) #convert to data frame which LmToOddsRatio expects
 
 ####perform Cook et al transformation
 if (opt$cook) {
