@@ -17,7 +17,7 @@ option_list <- list(
     make_option(c("-p", "--prefix"), type="character", default="",
                 help="prefix for output files"),
     make_option("--input", type="character", default="",
-                help="inputfile, can be gzipped"),
+                help="input file, can be gzipped"),
     make_option("--VAL1", type="character", default="",
                 help="header name for value 1 for comparison"),
     make_option("--VAL2", type="character", default="",
