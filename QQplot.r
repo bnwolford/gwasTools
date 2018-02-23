@@ -41,10 +41,10 @@ log10toP <- function(log10P){
     if(log10P > 300){
         part1 <- log10P%/%100*100
         part2 <- log10P-part1
-        P <- format(signif(10^-part2,3), scientific = T)
+        P <- format(signif(10^-part2,6), scientific = T)
         P <- paste(as.numeric(gsub("e-.+","",P)),"E-",as.numeric(gsub(".+-","",P),sep="")+part1,sep="")
     } else {
-        P <- signif(10^-log10P,3)
+        P <- signif(10^-log10P,6)
     }
     return(as.character(P))
 }
