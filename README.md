@@ -1,10 +1,10 @@
 # gwasTools
 
-A collection of R scripts that might be useful to plot GWAS results.
+A collection of R scripts that might be useful for exploring and plotting GWAS results.
 
 The following R pakages need to be installed for running these Rscripts:
 
-*optparse, data.table, RColorBrewer, plotrix, pwr*
+*optparse, data.table, RColorBrewer, plotrix, pwr, ggplot2*
 
 
 ## QQ Plot
@@ -25,13 +25,6 @@ Fast Manhattan plot script. Please check out the required/available Rscript para
 
 <img src="/Example_Manhattan.png" height="480">
 
-## 80% Power Plot
-
-80% Power plots based on Cohen's effect size calculation for proportions as implemented in the 'pwr' R package
-
-    Rscript PowerPlot.r --help
-
-<img src="/Example_PowerAnalysis.png" height="480">
 
 ## Minimal/example Input format for QQ and Manhattan plots
 
@@ -40,6 +33,23 @@ Fast Manhattan plot script. Please check out the required/available Rscript para
 |1  	|1  	|0.05	|0.99	|
 |2  	|2   	|0.15	|0.1	|
 |3  	|3  	|0.5	|0.25	|
+
+## ACtoMAC.r 
+
+    Rscript ACtoMAC.r --help
+    
+## AFtoMAF.r 
+
+    Rscript AFtoMAF.r --help
+    
+## comparisonPlot.R 
+
+    Rscript comparisonPlot.R --help
+    
+## transformBeta.r 
+
+    Rscript transformBeta.r --help 
+    
 
 
 ### Examples (run from command line):
@@ -52,7 +62,7 @@ Fast Manhattan plot script. Please check out the required/available Rscript para
     --maintitle 'An Example QQ plot'
 
 
-    Rscript ManhattanPlot.r \
+    Rscript ManhattanPlot.r 
     --input ExampleGWAS.txt \
     --prefix Example \
     --chr CHROM \
@@ -60,10 +70,3 @@ Fast Manhattan plot script. Please check out the required/available Rscript para
     --pvalue PVALUE \
     --maintitle 'An Example Manhattan plot'
  
- 
-    Rscript PowerPlot.r \
-    --prefix Example \
-    --cases 500,1000,5000 \
-    --controls 1000,2000,10000 \
-    --minMAF 0.001 \
-    --alpha 5E-8 
