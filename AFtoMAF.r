@@ -32,9 +32,13 @@ if (opt$input=="" || opt$output=="") {
     stop("Please provide --input and --output arguments\n")
 }
 
-#read file
-file <- fread(opt$input)
+#open file, even if zipped
+if (grepl('.gz',opt$input)) {
+        file <- fread(paste(sep=" ","zcat",opt$input),header=T)
+} else {
+    file <- fread(opt$input, header=T)
 
+#calcualte maf from af    
 if (opt$af %in% colnames(file)) { #check maf column exists
     file$maf<-as.numeric(file[[opt$af]]) #make new column
     file$maf[which(file$maf > 0.5)] <- 1 - file$maf[which(file$maf > 0.5)] #convert AF to MAF
