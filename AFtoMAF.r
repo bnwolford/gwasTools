@@ -12,7 +12,7 @@ library(optparse)
 
 option_list <- list(
   make_option("--input", type="character", default="",
-    help="Input file, tab delimited"),   
+    help="Input file, tab delimited, can be gzipped"),   
   make_option("--output", type="character", default="",
     help="Name for output file"),   
   make_option("--af",type="character",default="AF",
