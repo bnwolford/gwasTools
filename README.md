@@ -1,6 +1,7 @@
 # gwasTools
 
 A collection of R scripts that might be useful for exploring and plotting GWAS results.
+Derived from scripts from Dr. Lars Fritsche, Dr. Wei Zhou, Dr. Sarah Graham.
 
 The following R pakages need to be installed for running these Rscripts:
 
