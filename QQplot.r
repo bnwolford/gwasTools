@@ -1,65 +1,17 @@
+#!/usr/bin/Rscript
+
+# Copyright (c) 2018 Brooke Wolford
+# Revised from Dr. Lars Fritsche
+# Lab of Dr. Cristen Willer and Dr. Mike Boehnke
+# University of Michigan
+
 options(stringsAsFactors=F)
 library("plotrix")
 library("data.table")
 library("RColorBrewer")
 library("optparse")
 
-# QQ plot function
-qqplotdata <- function(logpvector){
-    o = sort(logpvector,decreasing=T)
-    e = -log10(ppoints(length(o)))       
-    qqdata <- data.frame(o,e)
-    qqdata$o <- round(qqdata$o,3)
-    qqdata$e <- round(qqdata$e,3)
-    keepU <- which(!duplicated(qqdata))
-    qqdata <- qqdata[keepU,]
-    
-    N <- length(logpvector) ## number of p-values
-    ## create the confidence intervals
-    qqdata$c95 <- NA
-    qqdata$c05 <- NA
 
-    ## the jth order statistic from a
-    ## uniform(0,1) sample
-    ## has a beta(j,n-j+1) distribution
-    ## (Casella & Berger, 2002,
-    ## 2nd edition, pg 230, Duxbury)
-
-    for(i in 1:length(keepU)){
-        j <- keepU[i]
-        qqdata$c95[i] <- -log10(qbeta(0.95,j,N-j+1))
-        qqdata$c05[i] <- -log10(qbeta(0.05,j,N-j+1))
-    }
-    return(qqdata)
-}
-
-# convert -log10(P) values to as.character(P)
-log10toP <- function(log10P){
-    log10P <- abs(as.numeric(log10P))
-    if(is.na(log10P)) return(NA)
-    if(log10P==Inf) return(as.character(0))
-    if(log10P > 300){
-        part1 <- log10P%/%100*100
-        part2 <- log10P-part1
-        P <- format(signif(10^-part2,6), scientific = T)
-        P <- paste(as.numeric(gsub("e-.+","",P)),"E-",as.numeric(gsub(".+-","",P),sep="")+part1,sep="")
-    } else {
-        P <- signif(10^-log10P,6)
-    }
-    return(as.character(P))
-}
-
-#calculate lambda for genomic correction
-lambdaGC<-function(log10P){
-    denom<-qchisq(0.5, df=1) #calculate denominator
-    char<-sapply(log10P,log10toP) #convert from log10P to character(P) vector
-    numer<-sapply(char,function(x) {as.numeric(x)}) #convert to numeric vector
-    print(summary(numer)) #print summary of p-values
-    num<-qchisq(median(numer),df=1,lower.tail=F) #calculate numerator
-    lam<-num/denom #calculate lambda
-    return(lam)
-}
-    
 option_list <- list(
   make_option("--input", type="character", default="",
     help="Input file, tab delimited"),   
@@ -99,18 +51,91 @@ option_list <- list(
     help="Plot as pdf [default=F]")
 )
 
-parser <- OptionParser(usage="%prog [options]", option_list=option_list)
+parser <- OptionParser(usage="%prog [options]", option_list=option_list, description="This script creates qqplots across MAF bins for summary statistics and calculates lambda genomic control at median of the chi squared distribution.\n")
 
+#################################################
+################ FUNCTIONS ######################
+#################################################
+
+
+# QQ plot function
+qqplotdata <- function(logpvector){
+    o = sort(logpvector,decreasing=T)
+    e = -log10(ppoints(length(o)))
+    qqdata <- data.frame(o,e)
+    qqdata$o <- round(qqdata$o,3)
+    qqdata$e <- round(qqdata$e,3)
+    keepU <- which(!duplicated(qqdata))
+    qqdata <- qqdata[keepU,]
+    
+    N <- length(logpvector) ## number of p-values
+    ## create the confidence intervals
+    qqdata$c95 <- NA
+    qqdata$c05 <- NA
+
+            ## the jth order statistic from a
+            ## uniform(0,1) sample
+            ## has a beta(j,n-j+1) distribution
+            ## (Casella & Berger, 2002,
+            ## 2nd edition, pg 230, Duxbury)
+
+    for(i in 1:length(keepU)){
+        j <- keepU[i]
+        qqdata$c95[i] <- -log10(qbeta(0.95,j,N-j+1))
+        qqdata$c05[i] <- -log10(qbeta(0.05,j,N-j+1))
+    }
+    return(qqdata)
+}
+
+# convert -log10(P) values to as.character(P)
+log10toP <- function(log10P){
+    log10P <- abs(as.numeric(log10P))
+    if(is.na(log10P)) return(NA)
+    if(log10P==Inf) return(as.character(0))
+    if(log10P > 300){
+        part1 <- log10P%/%100*100
+        part2 <- log10P-part1
+        P <- format(signif(10^-part2,6), scientific = T)
+        P <- paste(as.numeric(gsub("e-.+","",P)),"E-",as.numeric(gsub(".+-","",P),sep="")+part1,sep="")
+    } else {
+        P <- signif(10^-log10P,6)
+    }
+    return(as.character(P))
+}
+
+
+#calculate lambda for genomic correction
+lambdaGC<-function(log10P){
+    denom<-qchisq(0.5, df=1) #calculate denominator
+    char<-sapply(log10P,log10toP) #convert from log10P to character(P) vector
+    numer<-sapply(char,function(x) {as.numeric(x)}) #convert to numeric vector
+    print(summary(numer)) #print summary of p-values
+    num<-qchisq(median(numer),df=1,lower.tail=F) #calculate numerator
+    lam<-num/denom #calculate lambda
+    return(lam)
+}
+
+################################################
+############## MAIN #############################
+#################################################
+
+#parse arguments
 args <- parse_args(parser, positional_arguments = 0)
 opt <- args$options
 print(opt)
 
-# horizontal lines and corresponding colors
+#TO DO: check for required inputs
+
+#horizontal lines and corresponding colors
 yLine <- c(-log10(5E-8))
 colLine <- c("red")
 
-#read file
-gwas <- fread(opt$input)
+#open file, even if zipped
+if (grepl('.gz',opt$input)) {
+    gwas <- fread(paste(sep=" ","zcat",opt$input),header=T)
+} else {
+    gwas <- fread(opt$input, header=T)
+}
 
 #convert pvalues to -log10pvalue or use existing values in that scale
 if(!opt$log10p) {
