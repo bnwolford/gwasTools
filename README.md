@@ -96,7 +96,7 @@ Transform beta values from linear mixed model so they are comparable to beta val
     --negLog10 TRUE
 
     Rscript transformBeta.R
-    --INPUT ExampleGWAS.txt \ 
+    --input ExampleGWAS.txt \ 
     --prefix ExampleGWAS \
     --numCase 1000 \
     --numControl 4000 \
