@@ -3,7 +3,7 @@
 A collection of R scripts that might be useful for exploring and plotting GWAS results.
 Derived from scripts from Dr. Lars Fritsche, Dr. Wei Zhou, Dr. Sarah Graham.
 
-The following R pakages need to be installed for running these Rscripts:
+The following R packages need to be installed for running these Rscripts:
 
 *optparse, data.table, RColorBrewer, plotrix, pwr, ggplot2*
 
@@ -51,7 +51,7 @@ Create scatterplots to compare values from two columns in a data frame. Print Pe
     
 ## transformBeta.r 
 
-Transform beta values from linear mixed model so they are comparable to beta values from logistic/linear regression. Please check out the required/available Rscript parameters by using the following command:
+Transform beta values from linear mixed model so they are comparable to beta values from logistic/linear regression. This implements work from Cook et al (doi:10.1038/ejhg.2016.150) and Lloyd-Jones et al (doi:10.1534/genetics.117.300360). Please check out the required/available Rscript parameters by using the following command:
 
     Rscript transformBeta.r --help 
 
