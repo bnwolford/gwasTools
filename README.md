@@ -10,9 +10,7 @@ The following R pakages need to be installed for running these Rscripts:
 
 ## QQ Plot
 
-Frequency binned and thinned QQ plot.
-
-Please check out the required/available Rscript parameters by using the following command
+Frequency binned and thinned QQ plot. Please check out the required/available Rscript parameters by using the following command:
 
     Rscript QQplot.r --help
 
@@ -20,7 +18,7 @@ Please check out the required/available Rscript parameters by using the followin
 
 ## Manhattan Plot
 
-Fast Manhattan plot script. Please check out the required/available Rscript parameters by using the following command
+Fast Manhattan plot script. Please check out the required/available Rscript parameters by using the following command:
 
     Rscript ManhattanPlot.r --help
 
@@ -37,15 +35,19 @@ Fast Manhattan plot script. Please check out the required/available Rscript para
 
 ## ACtoMAC.r 
 
-    Rscript ACtoMAC.r --help
-    
+Convert alelle count (AC) to minor allele count (MAC) in additional column titled MAC or custom name (--colName). Requires columns with AC and sample size (N) and an input and output file name.  
+   
 ## AFtoMAF.r 
 
-    Rscript AFtoMAF.r --help
+Convert allele frequency (AF) to minor allele frequency (MAF) in additioanl column titled MAF or custom name (--colName). Requires columns with AF and an input and output file name.
     
 ## comparisonPlot.R 
 
+Create scatterplots to compare values from two columns in a data frame. Please check out the required/available Rscript parameters by using the following command:
+
     Rscript comparisonPlot.R --help
+    
+<img src="/Example_comparison.png" height="480">
     
 ## transformBeta.r 
 
@@ -70,4 +72,27 @@ Fast Manhattan plot script. Please check out the required/available Rscript para
     --pos POS \
     --pvalue PVALUE \
     --maintitle 'An Example Manhattan plot'
+    
+    Rscript AFtoMAF.r
+    --input ExampleGWAS.txt \
+    --output Example_minor.txt \
+    --af A1Freq \
+    --colName MAF
+ 
+    Rscript ACtoMAC.r
+    --input ExampleGWAS.txt \
+    --output Example_minor.txt \
+    --ac AC \
+    --colName MAC
+
+    Rscript comparisonPlot.R
+    --input ExampleGWAS.txt \
+    --prefix Example_comparison \
+    --VAL1 p.value
+    --VAL2 Logreg.pval
+    --labdata1 "SAIGE p-value" \
+    --labdata2 "HAIL p-value" \
+    --title "Pvalue comparison in all variants" \
+    --negLog10 TRUE
+
  
