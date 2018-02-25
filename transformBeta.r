@@ -31,6 +31,8 @@ option_list <- list(
                 help="Logical for performing Lloyd-Jones et al allele frequency based transformation (requires BETA, FREQ, and k or numCases and numControls) [default=TRUE]"),
     make_option("--cook",type="logical",default=TRUE,
                 help="Logical for performing Cook et al transformation (requires BETA, SE, numCase, numControl) [default=TRUE]"),
+    make_option("--pathToFunc",type="character",default="shiny_lmor_func.R",
+                help="Full path to shiny_lmor_func.R from Lloyd-Jones et al"),
     make_option("--numCase", type="numeric", default=NULL,
                 help="Number of cases"),
     make_option("--numControl",type="numeric", default=NULL,
@@ -65,7 +67,7 @@ cook_function<-function(cases,controls,beta,se,out_prefix){
 #derive OR based on beta and standard error
 lj_se<-function(se,n,beta,prev,out_prefix){
     cat("Performing transformation based on Lloyd-Jones et al doi:10.1534/genetics.117.300360\n")
-    source("shiny_lmor_func.R")
+    source(opt$pathToFunc)
     outLJ_SE<-paste0(out_prefix,"_LloydJones_SE.txt")
     #To DO use arguments change data frame column names to be what the function expects if they're different
     res<-LmToOddsRatio(df,prev,1)
@@ -76,7 +78,7 @@ lj_se<-function(se,n,beta,prev,out_prefix){
 #derive OR based on beta and allele frequencies
 lj_af<-function(beta,freq,prev,out_prefix){
     cat("Performing transformation based on Lloyd-Jones et al doi:10.1534/genetics.117.300360\n")
-    source("shiny_lmor_func.R")
+    source(opt$pathToFunc)
     outLJ_AF<-paste0(out_prefix,"_LloydJones_AF.txt")
     #To DO use arguments to change data frame column names to be what the function expects if they're different
     res<-LmToOddsRatio(df,prev,0)
