@@ -10,7 +10,7 @@ The following R pakages need to be installed for running these Rscripts:
 
 ## QQ Plot
 
-Frequency binned and thinned QQ plot. Please check out the required/available Rscript parameters by using the following command:
+Frequency binned and thinned QQ plot. Also calculates median genomic control inflation factor, lambda. Please check out the required/available Rscript parameters by using the following command:
 
     Rscript QQplot.r --help
 
@@ -39,7 +39,7 @@ Convert alelle count (AC) to minor allele count (MAC) in additional column title
    
 ## AFtoMAF.r 
 
-Convert allele frequency (AF) to minor allele frequency (MAF) in additioanl column titled MAF or custom name (--colName). Requires columns with AF and an input and output file name.
+Convert allele frequency (AF) to minor allele frequency (MAF) in additional column titled MAF or custom name (--colName). Requires columns with AF and an input and output file name.
     
 ## comparisonPlot.R 
 
@@ -96,3 +96,8 @@ Transform beta values from linear mixed model so they are comparable to beta val
     --negLog10 TRUE
 
     Rscript transformBeta.R
+    --INPUT ExampleGWAS.txt \ 
+    --prefix ExampleGWAS \
+    --numCase 1000 \
+    --numControl 4000 \
+    --pathToFunc shiny_lmor_func.R
