@@ -69,8 +69,13 @@ lj_se<-function(se,n,beta,prev,out_prefix){
     cat("Performing transformation based on Lloyd-Jones et al doi:10.1534/genetics.117.300360\n")
     source(opt$pathToFunc)
     outLJ_SE<-paste0(out_prefix,"_LloydJones_SE.txt")
-    #To DO use arguments change data frame column names to be what the function expects if they're different
-    res<-LmToOddsRatio(df,prev,1)
+
+    #rename data columns to something that shiny_lmor_func.R expects
+    names(df)[names(df) == se] <- "SE"
+    names(df)[names(df) == beta] <- "BETA"
+    names(df)[names(df) == n] <- "N"
+
+    res<-LmToOddsRatio(df,prev,1) #execute function
     res$BETA_SE<-log(res$OR_SE) #convert OR to Beta
     write.table(res, file=outLJ_SE,sep="\t",col.names=TRUE,row.names=FALSE,quote=FALSE)
 }
@@ -80,8 +85,12 @@ lj_af<-function(beta,freq,prev,out_prefix){
     cat("Performing transformation based on Lloyd-Jones et al doi:10.1534/genetics.117.300360\n")
     source(opt$pathToFunc)
     outLJ_AF<-paste0(out_prefix,"_LloydJones_AF.txt")
-    #To DO use arguments to change data frame column names to be what the function expects if they're different
-    res<-LmToOddsRatio(df,prev,0)
+
+    #rename data columns to something that shiny_lmor_func.R expects
+    names(df)[names(df) == freq] <- "FREQ"
+    names(df)[names(df) == beta] <- "BETA"
+    
+    res<-LmToOddsRatio(df,prev,0) #execute function
     res$BETA_AF<-log(res$OR) #convert OR to Beta
     write.table(res, file=outLJ_AF, sep="\t",col.names=TRUE,row.names=FALSE,quote=FALSE)
 }
