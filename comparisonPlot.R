@@ -29,7 +29,7 @@ option_list <- list(
     make_option("--title",type="character",default="",
                 help="title"),
     make_option("--negLog10",type="logical", default=TRUE,
-                help="Convert VAL1 and VAL2 to -log10 scale [default=TRUE]"),
+                help="Convert VAL1 and VAL2 to -log10 scale, will add -log10 to labels [default=TRUE]"),
     make_option(c("c","--cor"),type="logical",default=TRUE,
                 help="Calculate Pearson's correlation and print to stdout [default=TRUE]")
 )
@@ -76,10 +76,10 @@ if (log == TRUE) {
     ylab<-ylabdata
 }
 
-#correlation
+# Pearson's correlation
 if (cor==TRUE){
     correlation=cor(data[complete.cases(data),]$VAL1,data[complete.cases(data),]$VAL2)
-    print(correlation)
+    cat(correlation)
 }
 
 #plot
