@@ -49,7 +49,7 @@ log <- opt$negLog10
 cor <- opt$cor
 
 #check for required arguments
-if (input=="" || prefix =="" || valcol1=="" || valcol2=="") {
+if (inputfile=="" || prefix =="" || valcol1=="" || valcol2=="") {
     stop("Please provide --input and --output arguments\n")
 }
 
