@@ -43,7 +43,7 @@ Convert allele frequency (AF) to minor allele frequency (MAF) in additional colu
     
 ## comparisonPlot.R 
 
-Create scatterplots to compare values from two columns in a data frame. Please check out the required/available Rscript parameters by using the following command:
+Create scatterplots to compare values from two columns in a data frame. Print Pearson's correlation of the value sto standard out. Please check out the required/available Rscript parameters by using the following command:
 
     Rscript comparisonPlot.R --help
     
