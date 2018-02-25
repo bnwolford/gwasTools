@@ -177,7 +177,7 @@ if (opt$afTrans) {
     if (!exists(opt$beta) || !exists(opt$freq) ) {
         stop("Please provide name of columns with SE and BETA for Lloyd-Jones et al allele frequency based transformation\n")
     } else {
-        lj_af(opt$beta,optfreq,prev,opt$prefix)
+        lj_af(opt$beta,opt$freq,prev,opt$prefix)
     }
 }
 
