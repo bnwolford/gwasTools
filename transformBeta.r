@@ -22,7 +22,7 @@ option_list <- list(
     make_option("--se",type="character",default="SE",
                 help="Name of column with se [default=SE]"),
     make_option("--freq",type="character",default="FREQ",
-                help="Name of column with freq [default=FREQ]"),
+                help=" Name of column with freq [default=FREQ]"),
     make_option("--n",type="character",default="N",
                 help="Name of column with sample size N [default=N]"),
     make_option("--stdErrTrans",type="logical",default=TRUE,
@@ -48,7 +48,7 @@ parser <- OptionParser(usage="%prog [options]", option_list=option_list, descrip
 #doi:10.1038/ejhg.2016.150
 #Guidance for the utility of linear models in meta-analysis of genetic association studies of binary phenotypes
 cook_function<-function(cases,controls,beta,se,out_prefix){
-    print("Performing transformation based on Cook et al doi:10.1038/ejhg.2016.150\n")
+    cat("Performing transformation based on Cook et al doi:10.1038/ejhg.2016.150\n")
     outCook<-paste0(out_prefix,"_Cook.txt")
     frac_cases<-cases/(cases+controls)
     frac_controls<-controls/(cases+controls)
@@ -63,8 +63,8 @@ cook_function<-function(cases,controls,beta,se,out_prefix){
 #Transformation of Summary Statistics from Linear Mixed Model Association on All-or-None Traits to Odds Ratio
 #http://cnsgenomics.com/shiny/LMOR/ hosts shiny_lmor_func.R
 #derive OR based on beta and standard error
-lj_se<-function(se,n,beta,out_prefix){
-    print("Performing transformation based on Lloyd-Jones et al doi:10.1534/genetics.117.300360\n")
+lj_se<-function(se,n,beta,prev,out_prefix){
+    cat("Performing transformation based on Lloyd-Jones et al doi:10.1534/genetics.117.300360\n")
     source("shiny_lmor_func.R")
     outLJ_SE<-paste0(out_prefix,"_LloydJones_SE.txt")
     #To DO use arguments change data frame column names to be what the function expects if they're different
@@ -75,7 +75,7 @@ lj_se<-function(se,n,beta,out_prefix){
 
 #derive OR based on beta and allele frequencies
 lj_af<-function(beta,freq,prev,out_prefix){
-    print("Performing transformation based on Lloyd-Jones et al doi:10.1534/genetics.117.300360\n")
+    cat("Performing transformation based on Lloyd-Jones et al doi:10.1534/genetics.117.300360\n")
     source("shiny_lmor_func.R")
     outLJ_AF<-paste0(out_prefix,"_LloydJones_AF.txt")
     #To DO use arguments to change data frame column names to be what the function expects if they're different
@@ -120,7 +120,7 @@ if (grepl('.gz',file)){
 df<-data.frame(dt) #convert to data frame which LmToOddsRatio expects
 
 
-####perform Cook et al transformation
+#### perform Cook et al transformation
 if (opt$cook) {
     #check for required arguments
     if (!exists(opt$numCase) || !exists(opt$numControl) || !exists(opt$beta) || !exists(opt$se)) {
@@ -130,13 +130,23 @@ if (opt$cook) {
     }
 }
 
-####perform Llyod Jones et al standard error transformation
+#### perform Llyod Jones et al standard error transformation
 if (opt$stdErrTrans) {
-    #check for required arguments
+
+    #check for arguments required for prevalence
+    if (exists(opt$k)){
+        prev<-df[[opt$k]] #use column with prevalence per variant
+    } else if (exists(opt$numCase) && exists(opt$numControl)) {
+        prev<-opt$numCase/(opt$numCase+opt$numControl) #use prevalence for all genetic variants
+    } else {
+        stop("Please provide number of cases and controls or name of column with prevalence for Lloyd-Jones et al transformation\n")
+    }
+    
+    #check for other required arguments
     if (!exists(opt$se) || !exists(opt$n) || !exists(opt$beta)) {
         stop("Please provide name of columns with SE, N, and BETA for Lloyd-Jones et al standard error transformation\n")
     } else {
-        lj_se(opt$se, opt$n, opt$beta, opt$output)
+        lj_se(opt$se, opt$n, opt$beta, prev, opt$output)
     }
 }
 
@@ -147,9 +157,9 @@ if (opt$afTrans) {
     if (exists(opt$k)){
         prev<-df[[opt$k]] #use column with prevalence per variant
     } else if (exists(opt$numCase) && exists(opt$numControl)) {
-        prev<-cases/(cases+controls) #use prevalence for all genetic variants
+        prev<-opt$numCase/(opt$numCase+opt$numControl) #use prevalence for all genetic variants
     } else {
-        stop("Please provide number of cases and controls or name of column with prevalence for Lloyd-Jones et al allele frequency based transformation\n")
+        stop("Please provide number of cases and controls or name of column with prevalence for Lloyd-Jones et al transformation\n")
     }
 
     #check for other required arguments
