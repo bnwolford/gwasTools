@@ -18,7 +18,7 @@ option_list <- list(
   make_option("--sample.size",type="character",default="N",
     help="name of column with sample size, required to convert allele count to to minor allele count [default='N']"),
   make_option("--colName",type="character",default="MAC",
-    help="name of new column with MAF [default='MAC']")
+    help="name of new column with MAC [default='MAC']")
 )
 
 parser <- OptionParser(usage="%prog [options]", option_list=option_list, description="This script converts allele count to minor allele count in a new column titled MAC or --colName, and writes the output to a new file.\n")
