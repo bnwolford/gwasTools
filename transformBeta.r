@@ -37,7 +37,7 @@ option_list <- list(
                 help="Number of cases"),
     make_option("--numControl",type="numeric", default=NULL,
                 help="Number of controls"),
-    make_option("--output",type="character",default=NULL,
+    make_option("--prefix",type="character",default=NULL,
                 help="Output file prefix")
       )
 parser <- OptionParser(usage="%prog [options]", option_list=option_list, description="This script transforms summary statistics from linear mixed models to be compatible with those from logistic/linear regression for the purposes of meta-analysis.\n")
@@ -106,7 +106,7 @@ opt <- args$options
 print(opt)
 
 #check for input file and output file arguments
-if (!exists(opt$input) || !exists(opt$output)){
+if (!exists(opt$input) || !exists(opt$prefix)){
     stop("Please provide input file --input and output file --output\n")
 }
 
@@ -128,7 +128,7 @@ if (opt$cook) {
     if (!exists(opt$numCase) || !exists(opt$numControl) || !exists(opt$beta) || !exists(opt$se)) {
         stop("Please provide number of cases and controls, name of beta column and name of se column for Cook et al transformation\n")
     } else {
-        cook_function(opt$numCase,opt$numControl,opt$beta,opt$se,opt$output)
+        cook_function(opt$numCase,opt$numControl,opt$beta,opt$se,opt$prefix)
     }
 }
 
@@ -148,7 +148,7 @@ if (opt$stdErrTrans) {
     if (!exists(opt$se) || !exists(opt$n) || !exists(opt$beta)) {
         stop("Please provide name of columns with SE, N, and BETA for Lloyd-Jones et al standard error transformation\n")
     } else {
-        lj_se(opt$se, opt$n, opt$beta, prev, opt$output)
+        lj_se(opt$se, opt$n, opt$beta, prev, opt$prefix)
     }
 }
 
@@ -168,7 +168,7 @@ if (opt$afTrans) {
     if (!exists(opt$beta) || !exists(opt$freq) ) {
         stop("Please provide name of columns with SE and BETA for Lloyd-Jones et al allele frequency based transformation\n")
     } else {
-        lj_af(opt$beta,optfreq,prev,opt$output)
+        lj_af(opt$beta,optfreq,prev,opt$prefix)
     }
 }
 
