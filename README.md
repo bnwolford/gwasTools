@@ -51,9 +51,9 @@ Create scatterplots to compare values from two columns in a data frame. Please c
     
 ## transformBeta.r 
 
-    Rscript transformBeta.r --help 
-    
+Transform beta values from linear mixed model so they are comparable to beta values from logistic/linear regression. Please check out the required/available Rscript parameters by using the following command:
 
+    Rscript transformBeta.r --help 
 
 ### Examples (run from command line):
 
@@ -90,9 +90,9 @@ Create scatterplots to compare values from two columns in a data frame. Please c
     --prefix Example_comparison \
     --VAL1 p.value
     --VAL2 Logreg.pval
-    --labdata1 "SAIGE p-value" \
-    --labdata2 "HAIL p-value" \
+    --labdata1 "SAIGE" \
+    --labdata2 "HAIL" \
     --title "Pvalue comparison in all variants" \
     --negLog10 TRUE
 
- 
+    Rscript transformBeta.R
