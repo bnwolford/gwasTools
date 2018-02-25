@@ -12,7 +12,7 @@ option_list <- list(
   make_option("--input", type="character", default="",
     help="Input file, tab delimited, can be gzipped"),   
   make_option("--output", type="character", default="",
-    help="Prefix of output files"),   
+    help="Output file name"),   
   make_option("--ac",type="character",default="AC",
     help="name of column with AC [default='AC']"),
   make_option("--sample.size",type="character",default="N",
