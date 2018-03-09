@@ -104,8 +104,8 @@ if(!opt$log10p) {
 
 gwas<-gwas[complete.cases(gwas),] #remove NAs
 
-print(summary(gwas))
-print(str(gwas))
+#print(summary(gwas))
+#print(str(gwas))
 
 #filter results by MAF or MAC 
 if (opt$minMAF > 0) { 
