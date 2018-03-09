@@ -34,7 +34,7 @@ if (opt$input=="" || opt$output=="") {
 
 #open file, even if zipped
 if (grepl('.gz',opt$input)) {
-        file <- fread(paste(sep=" ","zcat",opt$input),header=T)
+    file <- fread(paste(sep=" ","zcat",opt$input),header=T)
 } else {
     file <- fread(opt$input, header=T)
 
@@ -52,4 +52,3 @@ colnames(file)[colnames(file)=="maf"] <- opt$colName
 #write file
 filename<-opt$output
 write.table(x=file,file=filename,col.names=T,row.names=F,quote=F,sep="\t")
-
