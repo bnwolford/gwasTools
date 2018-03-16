@@ -31,6 +31,8 @@ if (opt$input=="" || opt$output=="" || opt$dbsnp=="") {
     stop("Please provide --input and --output and --dbsnp arguments\n")
 }
 
+snp_col<-opt$col
+
 #open file, even if zipped
 if (grepl('.gz',opt$input)) {
     file <- fread(paste(sep=" ","zcat",opt$input),header=T)
@@ -50,18 +52,18 @@ dbsnp<-as_tibble(dbsnp)
 
 #split up SNP name in file
 df_cols<-names(file)
-n_cols<-length(df_cols)
-snp_col<-which(df_cols==opt$col)
-file<-separate(file, opt$col, c("snp","alleles"),"_") %>% separate(snp,c("chr","posE"),":")
+#n_cols<-length(df_cols)
+#snp_col<-which(df_cols==opt$col)
+file<-separate(file, (!!snp_col), c("snp","alleles"),"_") %>% separate(snp,c("chr","posE"),":")
 file<-mutate(file,chr=type.convert(chr)) %>% mutate(posE=type.convert(posE))
 
 #inner join of file and dbsnp
 join<-inner_join(file,dbsnp,by=c("chr"="chr","posE"="posE"))
 
 #reformat join so we just added rsID column to the original data frame
-join<-mutate(join,opt$col=paste(sep=":",chr,posE)) %>% mutate(SNP=paste(sep="_",SNP,alleles))
-final<-join[:]
+join<-mutate(join,(!!snp_col):=paste(sep=":",chr,posE)) %>% mutate((!!snp_col):=paste(sep="_",SNP,alleles))
+final<-select(join,one_of(c(df_cols,"rsID")))
 
 #write file
 filename<-opt$output
-write.table(x=file,file=filename,col.names=T,row.names=F,quote=F,sep="\t")
+write.table(x=final,file=filename,col.names=T,row.names=F,quote=F,sep="\t")
