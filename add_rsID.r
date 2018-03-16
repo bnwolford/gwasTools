@@ -7,29 +7,28 @@
 options(stringsAsFactors=F)
 library(data.table)
 library(optparse)
-
-#this script converts the AF to MAF and outputs a file <prefix>_minor.txt with a new column
+library(tidyverse)
 
 option_list <- list(
   make_option("--input", type="character", default="",
     help="Input file, tab delimited, can be gzipped"),   
   make_option("--output", type="character", default="",
     help="Name for output file"),   
-  make_option("--af",type="character",default="AF",
-    help="name of column with AF [default='AF']"),
-  make_option("--colName",type="character",default="MAF",
-    help="name of new column with MAF [default='MAF']") 
+  make_option("--col",type="character",default="SNP",
+    help="name of column with SNP ID formatted X:XXXXX_X/X [default='SNP']"),
+  make_option("--dbsnp",type="character",default="",
+    help="Bed file from dbsnp with columns chr, posS, posE, rsID")
 )
 
-parser <- OptionParser(usage="%prog [options]", option_list=option_list, description="This script converts allele frequency to minor allele frequency in a new column titled MAF or --colName and writes the output to a new file ")
+parser <- OptionParser(usage="%prog [options]", option_list=option_list, description="This script adds an rsID column to a .txt file with results from BOLT-LMM.")
 
 args <- parse_args(parser, positional_arguments = 0)
 opt <- args$options
 print(opt)
 
 #check for required arguments
-if (opt$input=="" || opt$output=="") {
-    stop("Please provide --input and --output arguments\n")
+if (opt$input=="" || opt$output=="" || opt$dbsnp=="") {
+    stop("Please provide --input and --output and --dbsnp arguments\n")
 }
 
 #open file, even if zipped
@@ -37,17 +36,31 @@ if (grepl('.gz',opt$input)) {
     file <- fread(paste(sep=" ","zcat",opt$input),header=T)
 } else {
     file <- fread(opt$input, header=T)
-
-#calcualte maf from af    
-if (opt$af %in% colnames(file)) { #check maf column exists
-    file$maf<-as.numeric(file[[opt$af]]) #make new column
-    file$maf[which(file$maf > 0.5)] <- 1 - file$maf[which(file$maf > 0.5)] #convert AF to MAF
-} else {
-    stop("Please provide --af argument that match a column in input file\n")
 }
+file<-as_tibble(file)
 
-#rename column to MAF or provided --colName
-colnames(file)[colnames(file)=="maf"] <- opt$colName
+#open dbsnp file, even if zipped
+if (grepl('.gz',opt$input)) {
+    dbsnp <- fread(paste(sep=" ","zcat",opt$dbsnp),header=T)
+} else {
+    dbsnp <- fread(opt$dbsnp, header=T)
+}
+names(dbsnp)<-c("chr","posS","posE","rsID")
+dbsnp<-as_tibble(dbsnp)
+
+#split up SNP name in file
+df_cols<-names(file)
+n_cols<-length(df_cols)
+snp_col<-which(df_cols==opt$col)
+file<-separate(file, opt$col, c("snp","alleles"),"_") %>% separate(snp,c("chr","posE"),":")
+file<-mutate(file,chr=type.convert(chr)) %>% mutate(posE=type.convert(posE))
+
+#inner join of file and dbsnp
+join<-inner_join(file,dbsnp,by=c("chr"="chr","posE"="posE"))
+
+#reformat join so we just added rsID column to the original data frame
+join<-mutate(join,opt$col=paste(sep=":",chr,posE)) %>% mutate(SNP=paste(sep="_",SNP,alleles))
+final<-join[:]
 
 #write file
 filename<-opt$output
