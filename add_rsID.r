@@ -43,9 +43,9 @@ file<-as_tibble(file)
 
 #open dbsnp file, even if zipped
 if (grepl('.gz',opt$input)) {
-    dbsnp <- fread(paste(sep=" ","zcat",opt$dbsnp),header=T)
+    dbsnp <- fread(paste(sep=" ","zcat",opt$dbsnp),header=F)
 } else {
-    dbsnp <- fread(opt$dbsnp, header=T)
+    dbsnp <- fread(opt$dbsnp, header=F)
 }
 names(dbsnp)<-c("chr","posS","posE","rsID")
 dbsnp<-as_tibble(dbsnp)
