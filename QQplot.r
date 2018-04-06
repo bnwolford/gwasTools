@@ -168,6 +168,7 @@ if (opt$minMAF > 0) { #minMAF provided so filter by MAF
         stop("Please only provide either --minMAF or --minMAC but not both\n")
     } else {
         gwas <- gwas[gwas[[mafcol]] > opt$minMAF] #filter by MAF
+        minMAF<-min(gwas[[optmaf]]) #new minMAF
     }
 } else if (opt$minMAC > 0) { #minMAC provided so filter by MAC
     if (opt$mac %in% colnames(gwas)) {
@@ -182,6 +183,8 @@ if (opt$minMAF > 0) { #minMAF provided so filter by MAF
 } else {
     warning("Results are not filtered by MAF or MAC\n")
 }
+
+print(nrow(gwas))
 
 # TO DO: plot  bins by MAC rather than MAF
 
