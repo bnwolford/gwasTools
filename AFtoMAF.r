@@ -37,6 +37,7 @@ if (grepl('.gz',opt$input)) {
     file <- fread(paste(sep=" ","zcat",opt$input),header=T)
 } else {
     file <- fread(opt$input, header=T)
+}
 
 #calcualte maf from af    
 if (opt$af %in% colnames(file)) { #check maf column exists
