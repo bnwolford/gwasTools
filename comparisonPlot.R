@@ -34,15 +34,16 @@ option_list <- list(
                 help="Calculate Pearson's correlation and print to stdout [default=TRUE]"),
     make_option(c("-f","--filter"),type="character",default="",
                 help="Column name to filter on"),
-    make_option("--max",type="numeric",default="",
+    make_option("--max",type="numeric",default=0,
                 help="Maximum number to filter on (keep values <= this"),
-    make_option("--min",type="numeric",default="",
+    make_option("--min",type="numeric",default=0,
                  help="Minimum number to filter on (keep values > to this")
 )
 
 parser <- OptionParser(usage="%prog [options]", option_list=option_list, description="This script creates scatter plots comparing values from two columns of an input file (e.g. MAF vs Beta) and can print the Pearson's correlation to standard out.\n")
 args <- parse_args(parser, positional_arguments = 0)
 opt <- args$options
+print(opt)
 pheno <- opt$pheno
 prefix <- opt$prefix
 valcol1 <- opt$VAL1
@@ -70,10 +71,10 @@ if (grepl('.gz',inputfile)) {
 if (opt$filter != "") {
     print(nrow(data))
     if (opt$filter %in% colnames(data)) {
-        if (opt$max != ""){
+        if (opt$max != 0){
             data <- data[data[[opt$filter]] <= opt$max] #filter by max
             print(nrow(data))
-        } else if (opt$min != ""){
+        } else if (opt$min != 0){
             data <- data[data[[opt$filter]] > opt$min] #filter by min
             print(nrow(data))
         } else {
