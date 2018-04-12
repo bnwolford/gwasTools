@@ -169,14 +169,17 @@ if (opt$minMAF > 0) { #minMAF provided so filter by MAF
     } else {
         gwas <- gwas[gwas[[mafcol]] > opt$minMAF] #filter by MAF
         minMAF<-min(gwas[[mafcol]]) #new minMAF
+        print(summary(gwas$[[mafcol]])) #print MAF 
     }
 } else if (opt$minMAC > 0) { #minMAC provided so filter by MAC
     if (opt$mac %in% colnames(gwas)) {
         gwas<-gwas[gwas[[opt$mac]] > opt$minMAC] #filter by MAC
+        print(summary(gwas[[opt$mac]])) #print MAC
     } else if (opt$ac %in% colnames(gwas)) {
         gwas$mac<-gwas[[opt$ac]]
         gwas$mac[which(gwas$mac > gwas[[opt$sample.size]])] <- 2*gwas[[opt$sample.size]][which(gwas$mac > gwas[[opt$sample.size]])] - gwas$mac[which(gwas$mac > gwas[[opt$sample.size]])] #convert to MAC
         gwas<-gwas[mac > opt$minMAC] #filter by MAC
+        print(summary(gwas$mac)) #print MAC
     } else {
         stop("Please provide --ac or --mac arguments that match a column in input file\n")
     }
