@@ -169,7 +169,7 @@ if (opt$minMAF > 0) { #minMAF provided so filter by MAF
     } else {
         gwas <- gwas[gwas[[mafcol]] > opt$minMAF] #filter by MAF
         minMAF<-min(gwas[[mafcol]]) #new minMAF
-        print(summary(gwas$[[mafcol]])) #print MAF 
+        print(summary(gwas[[mafcol]])) #print MAF 
     }
 } else if (opt$minMAC > 0) { #minMAC provided so filter by MAC
     if (opt$mac %in% colnames(gwas)) {
