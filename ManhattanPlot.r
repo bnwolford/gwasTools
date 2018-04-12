@@ -104,6 +104,7 @@ if(!opt$log10p) {
 
 gwas<-gwas[complete.cases(gwas),] #remove NAs
 
+print(nrow(gwas))
 #print(summary(gwas))
 #print(str(gwas))
 
@@ -114,10 +115,12 @@ if (opt$minMAF > 0) {
     } else {
         if (opt$maf %in% colnames(gwas)) {
             gwas <- gwas[gwas[[opt$maf]] > opt$minMAF] #filter by MAF
+            print(summary(gwas[[opt$maf]])) #print MAF
         } else if (opt$af %in% colnames(gwas)) {
             gwas$maf<-gwas[[opt$af]]
             gwas$maf[which(gwas$maf > 0.5)] <- 1 - gwas$maf[which(gwas$maf > 0.5)] #convert AF to MAF
             gwas<-gwas[maf > opt$minMAF] #filter by MAF
+            print(summary(gwas$maf)) #print MAF
         } else {
             stop("Please provide --af or --maf arguments that match a column in input file\n")
         }
@@ -125,10 +128,12 @@ if (opt$minMAF > 0) {
 } else if (opt$minMAC > 0) {
     if (opt$mac %in% colnames(gwas)) {
         gwas<-gwas[gwas[[opt$mac]] > opt$minMAC] #filter by MAC
+        print(summary(gwas$mac)) #print MAC
     } else if (opt$ac %in% colnames(gwas)) {
         gwas$mac<-gwas[[opt$ac]]
         gwas$mac[which(gwas$mac > gwas[[opt$sample.size]])] <- 2*gwas[[opt$sample.size]][which(gwas$mac > gwas[[opt$sample.size]])] - gwas$mac[which(gwas$mac > gwas[[opt$sample.size]])] #convert to MAC
         gwas<-gwas[mac > opt$minMAC] #filter by MAC
+        print(summary(gwas$mac)) #print MAC
     } else {
         stop("Please provide --ac or --mac arguments that match a column in input file\n")
     }
