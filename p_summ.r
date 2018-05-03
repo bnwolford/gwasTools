@@ -50,8 +50,8 @@ if(!opt$log10p){
     summ<-summary(file[[col]]) #summary since the value are already neglog10
 }
 
-
 #write output
 filename<-paste(sep="_",opt$prefix,"pval_summary.txt")
-write.table(x=summ,file=filename,col.names=T,row.names=F,quote=F,sep="\t")
+cat("P-value summary", summ, file=filename,sep="\n",append=FALSE)
+
 
