@@ -19,7 +19,7 @@ option_list <- list(
     help="Input p.value column with -log10(p.value) [default=F]")
 )
 
-parser <- OptionParser(usage="%prog [options]", option_list=option_list, description="This script converts allele count to minor allele count in a new column titled MAC or --colName, and writes the output to a new file.\n")
+parser <- OptionParser(usage="%prog [options]", option_list=option_list, description="This script prints the min, 1st quartile, median, mean, 3rd quartile, and max of the negative log 10 pvalues from a summary statistics file\n")
 
 args <- parse_args(parser, positional_arguments = 0)
 opt <- args$options
