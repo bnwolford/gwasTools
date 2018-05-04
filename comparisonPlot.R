@@ -73,10 +73,10 @@ if (opt$filter != "") {
     if (opt$filter %in% colnames(data)) {
         if (opt$max != 0){
             data <- data[data[[opt$filter]] <= opt$max] #filter by max
-            print(nrow(data))
+            cat(paste(nrow(data),"\n"))
         } else if (opt$min != 0){
             data <- data[data[[opt$filter]] > opt$min] #filter by min
-            print(nrow(data))
+            cat(paste(nrow(data),"\n"))
         } else {
             stop("If you intend to filter on a column please provide --max or --min but not both\n")
         }
@@ -84,6 +84,8 @@ if (opt$filter != "") {
     else {
         stop("Please provide --filter that is a column name of --input\n")
     }
+} else {
+    cat(paste(nrow(data),"\n"))
 }
     
 #reset value names
