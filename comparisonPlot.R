@@ -69,7 +69,7 @@ if (grepl('.gz',inputfile)) {
 
 #do we filter?
 if (opt$filter != "") {
-    cat(nrow(data))
+    cat(paste(nrow(data),"\n"))
     if (opt$filter %in% colnames(data)) {
         if (opt$max != 0){
             data <- data[data[[opt$filter]] <= opt$max] #filter by max
