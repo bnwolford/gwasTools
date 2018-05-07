@@ -214,6 +214,8 @@ fcol <- character(0)
 legendcol <- character(0)
 conf <- list()
 allcols <- brewer.pal(4,"Set1")
+#allcols <- c("#999999", "#E69F00", "#56B4E9", "#CC79A7") #color blind friendly
+
 for(f in 1:length(freqtable)){
 	fbin <- c(fbin,names(freqtable)[f])
 	fsnps <- which(gwas$freqbin ==names(freqtable)[f])
