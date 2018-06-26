@@ -104,7 +104,7 @@ if(!opt$log10p) {
 
 gwas<-gwas[complete.cases(gwas),] #remove NAs
 
-print(nrow(gwas))
+#print(nrow(gwas))
 #print(summary(gwas))
 #print(str(gwas))
 
