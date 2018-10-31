@@ -35,8 +35,6 @@ import gzip
 parser = argparse.ArgumentParser(description="File to format sex-straifeid analysis results in the format requested\n")
 parser.add_argument("-f","--file",help="File of SAIGE results to reformat",type=str, required=True)
 parser.add_argument("-i","--info",help="File with information like hwe and rsq",type=str,required=True)
-parser.add_argument("-p","--pheno",help="Phenotye file to identify cases and controls from VCF",type=str,required=True)
-parser.add_argument("-v","--vcf",help="VCF for a specific chromosome",type=str,required=True)
 parser.add_argument("-ka","--plink_case",help=".hwe file for cases",type=str,required=True)
 parser.add_argument("-ko","--plink_control",help=".hwe file for controls",type=str,required=True)
 parser.add_argument("-c","--chr",help="Chromosome of the VCF, 23 for X",type=int,required=True)
@@ -68,9 +66,10 @@ def info(info_file):
             ls=line.rstrip()
             lineList=ls.split("\t")
             coord=":".join([lineList[0],lineList[1]])
-            info_dict[coord]={}
-            info_dict[coord]["hwe"]=lineList[6]
-            info_dict[coord]["rsq"]=lineList[3]
+            snp=lineList[2] #use snp id instead of coord to account for multiallelic variants
+            info_dict[snp]={}
+            info_dict[snp]["hwe"]=lineList[6]
+            info_dict[snp]["rsq"]=lineList[3]
     return(info_dict)
 
 #read in .hwe files for cases and controls from plink
@@ -82,16 +81,14 @@ def geno_counts(case,control):
         for line in a:
             ls=line.rstrip()
             lineList=ls.split()
-            coord=lineList[1].split("_")[0]
-            geno_dict[coord]=lineList[3:6]
+            geno_dict[lineList[1]]=lineList[3:6] #use SNP ID instead of coord for unique alleles
     open_control=open_file(control)
     with open_control as o:
         next(o)
         for line in o:
             ls=line.rstrip()
             lineList=ls.split()
-            coord=lineList[1].split("_")[0]
-            geno_dict[coord].append(lineList[5])
+            geno_dict[lineList[1]].append(lineList[5])
     return(geno_dict)
 
 def parse_counts(list,effect_allele):
@@ -104,14 +101,17 @@ def parse_counts(list,effect_allele):
         n2_control,n1_control,n0_control=control.split("/")
     else:
         print >> sys.stderr, "Effect allele is neither minor or major allele from PLINK files\n"
+    n0_case,n1_case,n2_case,n0_control,n1_control,n2_control=map(int,[n0_case,n1_case,n2_case,n0_control,n1_control,n2_control]) #convert strings to integers 
     n0=n0_case+n0_control
     n1=n1_case+n1_control
     n2=n2_case+n2_control
+    ncase=n0_case+n1_case+n2_case
+    ncontrol=n0_control+n1_control+n2_control
     eaf_case=(n2_case*2 + n1_case)/(ncase*2)
     eaf_control=(n2_control*2 + n1_control)/(ncontrol*2)
     #n0,n1,n2,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case
-    parsed_list=[n0,n1,n2,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case]
-    return parsed_list
+    parsed_list=map(str,[n0,n1,n2,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case])
+    return(parsed_list) #return as strings
 
 def reformat_file(file,info_dict,geno_dict,chrom,header):
     new_header="\t".join(["SNP","STRAND","BUILD","CHR","POS","EFFECT_ALLELE","NON_EFFECT_ALLELE","N","N0", "N1","N2","EAF","N0_controls","N1_controls","N2_controls","EAF_controls","N0_cases","N1_cases","N2_cases","EAF_cases","HWE","CALL_RATE","BETA","SE","PVAL","IMPUTED","INFO"])
@@ -123,9 +123,10 @@ def reformat_file(file,info_dict,geno_dict,chrom,header):
             next(f)
         for line in f: #iterate over every line
             ls = line.rstrip()
-            lineList=ls.split("\t")
+            lineList=ls.split() #any white space delimiter
             if str(lineList[1]) == str(chrom): #restrict to per chrom so we can parallelize and use a single chrom VCF for info
                 coord=":".join([lineList[1],lineList[2]])
+                snp=lineList[0]
                 #pull info from other sources
                 strand="+"
                 build="37"
@@ -136,9 +137,9 @@ def reformat_file(file,info_dict,geno_dict,chrom,header):
                 eaf=lineList[6]
                 n=lineList[7]
                 try:
-                    hwe=info_dict[coord]["hwe"]
-                    rsq=info_dict[coord]["rsq"]
-                    n0,n1,n2,eaf,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case=parse_counts(geno_dict[coord],effect_allele)
+                    hwe=info_dict[snp]["hwe"]
+                    rsq=info_dict[snp]["rsq"]
+                    n0,n1,n2,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case=parse_counts(geno_dict[snp],effect_allele)
                 except KeyError:
                     hwe="."
                     rsq="."
