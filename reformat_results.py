@@ -116,6 +116,9 @@ def parse_counts(list,effect_allele,noneffect_allele):
 def reformat_file(file,info_dict,geno_dict,chrom,header):
     new_header="\t".join(["SNP","STRAND","BUILD","CHR","POS","EFFECT_ALLELE","NON_EFFECT_ALLELE","N","N0", "N1","N2","EAF","N0_controls","N1_controls","N2_controls","EAF_controls","N0_cases","N1_cases","N2_cases","EAF_cases","HWE","CALL_RATE","BETA","SE","PVAL","IMPUTED","INFO"])
     print(new_header)
+
+    if chrom==23:
+        chrom="X"
     
     openCommand=open_file(file)
     with openCommand as f:
