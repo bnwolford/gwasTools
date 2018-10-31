@@ -37,6 +37,8 @@ parser.add_argument("-f","--file",help="File of SAIGE results to reformat",type=
 parser.add_argument("-i","--info",help="File with information like hwe and rsq",type=str,required=True)
 parser.add_argument("-p","--pheno",help="Phenotye file to identify cases and controls from VCF",type=str,required=True)
 parser.add_argument("-v","--vcf",help="VCF for a specific chromosome",type=str,required=True)
+parser.add_argument("-ka","--plink_case",help=".hwe file for cases",type=str,required=True)
+parser.add_argument("-ko","--plink_control",help=".hwe file for controls",type=str,required=True)
 parser.add_argument("-c","--chr",help="Chromosome of the VCF, 23 for X",type=int,required=True)
 args=parser.parse_args()
 
@@ -70,85 +72,46 @@ def info(info_file):
             info_dict[coord]["rsq"]=lineList[3]
     return(info_dict)
 
-# read phenotype file and get sample IDs that are cases or controls, output as 2 lists
-def read_pheno(pheno_file):
-    case=[]
-    control=[]
-    #read cases and controls from phenotype file
-    openCommand=open_file(pheno_file)
-    with openCommand as f:
-        for line in f:
+#read in .hwe files for cases and controls from plink
+def geno_counts(case,control):
+    geno_dict={}
+    open_case=open_file(case)
+    with open_case as a:
+        next(a)
+        for line in a:
             ls=line.rstrip()
-            lineList=ls.split("\t")
-            if lineList[12] == "1": #cases
-                case.append(lineList[0])
-            elif lineList[12] == "0": #controls
-                control.append(lineList[0])
-            else:
-                print >> sys.stderr, lineList[0] + "has no phenotype\n"
-    return case,control
+            lineList=ls.split()
+            coord=lineList[1].split("_")[0]
+            geno_dict[coord]=lineList[3:6]
+    open_control=open_file(control)
+    with open_control as o:
+        next(o)
+        for line in o:
+            ls=line.rstrip()
+            lineList=ls.split()
+            coord=lineList[1].split("_")[0]
+            geno_dict[coord].append(lineList[5])
+    return(geno_dict)
 
-# get relevant per variant information from the VCF
-def parse_VCF(vcf,case,control):
-    #get sample list
-    proc=subprocess.Popen(["/usr/local/bin/bcftools", "query","-l",vcf],stdout=subprocess.PIPE)
-    query=filter(lambda x:len(x)>0,(line.strip() for line in proc.stdout)) #get list of samples
+def parse_counts(list,effect_allele):
+    minor,major,case,control=list
+    if major==effect_allele: #alt is effect allele
+        n0_case,n1_case,n2_case=case.split("/")
+        n0_control,n1_control,n2_control=control.split("/") #plink hwe are hom minor, het, hom major
+    elif minor==effect_allele:
+        n2_case,n1_case,n0_case=case.split("/")
+        n2_control,n1_control,n0_control=control.split("/")
+    else:
+        print >> sys.stderr, "Effect allele is neither minor or major allele from PLINK files\n")
+    n0=n0_case+n0_control
+    n1=n1_case+n1_control
+    n2=n2_case+n2_control
     
-    count_dict={}
-    openCommand=open_file(vcf)
-    with openCommand as f:
-        for line in f:
-            ls=line.rstrip()
-            if not ls.startswith('#'): #skip headers
-                lineList=ls.split("\t")
-                coord=":".join([lineList[0],lineList[1]])
-                genos=lineList[9:]
-                vcf_dict=dict(zip(query,genos)) #per variant dictionary of samples and genotypes
-                out=geno_counts(vcf_dict,case,control) #make counts for each variant 
-                count_dict[coord]=out #save list of counts to the count dictionary on a per variant basis
-    return count_dict
+    #n0,n1,n2,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case
+    parsed_list=[]
+    return parsed_list
 
-#turn 0|0:0.000 into counts for cases and controls
-def geno_counts(dict,case,control):
-    ncase=len(case)
-    ncontrol=len(control)
-    n0_control=0 
-    n1_control=0
-    n2_control=0
-    n0_case=0
-    n1_case=0
-    n2_case=0
-    for sample in dict.keys(): #evaluate every sample's genotype in terms of effect allele
-        geno=dict[sample].split(":")[0]
-        if sample in control:
-            if geno=="1|1":
-                n2_control+=1
-            elif geno=="0|0":
-                n0_control+=1
-            elif geno=="0|1" or geno=="1|0":
-                n1_control+=1
-            #else:
-                #print >> sys.stderr, "Geno %s not recognized.\n" %geno
-        elif sample in case:
-            if geno=="1|1":
-                n2_case+=1
-            elif geno=="0|0":
-                n0_case+=1
-            elif geno=="0|1" or geno=="1|0":
-                n1_case+=1
-            #else:
-                #print >> sys.stderr, "Geno %s not recognized.\n" %geno
-        #else:
-            #print >> sys.stderr, "Sample %s not a case or control.\n" %sample
-    n0=n0_control+n0_case #homozygous non effect
-    n1=n1_control+n1_case #heterozygous
-    n2=n2_control+n2_case #homozygous effect
-    eaf=(n2*2 + n1) / ((ncase+ncontrol)*2)
-    eaf_case=(n2_case*2 + n1_case)/(ncase*2)
-    eaf_control=(n2_control*2 + n1_control)/(ncontrol*2)
-    return([n0,n1,n2,eaf,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case])
-
-def reformat_file(file,info_dict,vcf_dict,chrom):
+def reformat_file(file,info_dict,geno_dict,chrom):
     openCommand=open_file(file)
     with openCommand as f:
         count=0
@@ -171,16 +134,18 @@ def reformat_file(file,info_dict,vcf_dict,chrom):
                     imputed="1"
                     effect_allele=lineList[4]
                     non_effect_allele=lineList[3]
+                    eaf=lineList[6]
+                    n=lineList[7]
                     try:
                         hwe=info_dict[coord]["hwe"]
                         rsq=info_dict[coord]["rsq"]
-                        n0,n1,n2,eaf,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case=vcf_dict[coord] #pull info out of vcf
+                        n0,n1,n2,eaf,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case=parse_counts(geno_dict[coord],effect_allele)
                     except KeyError:
                         hwe="."
                         rsq="."
-                        n0,n1,n2,eaf,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case=["."]*12
+                        n0,n1,n2,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case=["."]*12
                         pass
-                    new_line="\t".join([lineList[0],strand,build,lineList[1],lineList[2],effect_allele,non_effect_allele,str(lineList[7]), n0, n1, n2, lineList[6],n0_control, n1_control, n2_control,eaf_control, n0_case, n1_case, n2_case, eaf_case,hwe,call_rate,lineList[8],lineList[9],lineList[11],imputed,rsq])
+                    new_line="\t".join([lineList[0],strand,build,lineList[1],lineList[2],effect_allele,non_effect_allele,str(n), n0, n1, n2, str(eaf),n0_control, n1_control, n2_control,eaf_control, n0_case, n1_case, n2_case, eaf_case,hwe,call_rate,lineList[8],lineList[9],lineList[11],imputed,rsq])
                     print(new_line)
                     count+=1
             
@@ -192,9 +157,8 @@ def reformat_file(file,info_dict,vcf_dict,chrom):
 def main():
                                    
     info_dict=info(args.info) # read in hwe and rsq from a separate file
-    case,control=read_pheno(args.pheno)
-    vcf_dict=parse_VCF(args.vcf,case,control) #parse n and allele frequency for all, case, control
-    reformat_file(args.file,info_dict,vcf_dict, args.chr)
+    geno_dict=geno_counts(args.plink_case,args.plink_control)
+    reformat_file(args.file,info_dict,geno_dict, args.chr)
     
 if __name__ == "__main__":
     main()
