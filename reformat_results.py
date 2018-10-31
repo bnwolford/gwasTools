@@ -91,12 +91,12 @@ def geno_counts(case,control):
             geno_dict[lineList[1]].append(lineList[5])
     return(geno_dict)
 
-def parse_counts(list,effect_allele):
+def parse_counts(list,effect_allele,noneffect_allele):
     minor,major,case,control=list
-    if major==effect_allele: #alt is effect allele
+    if major==effect_allele and minor == noneffect_allele: #alt is effect allele
         n0_case,n1_case,n2_case=case.split("/")
         n0_control,n1_control,n2_control=control.split("/") #plink hwe are hom minor, het, hom major
-    elif minor==effect_allele:
+    elif minor==effect_allele and major == noneffect_allele:
         n2_case,n1_case,n0_case=case.split("/")
         n2_control,n1_control,n0_control=control.split("/")
     else:
@@ -139,7 +139,7 @@ def reformat_file(file,info_dict,geno_dict,chrom,header):
                 try:
                     hwe=info_dict[snp]["hwe"]
                     rsq=info_dict[snp]["rsq"]
-                    n0,n1,n2,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case=parse_counts(geno_dict[snp],effect_allele)
+                    n0,n1,n2,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case=parse_counts(geno_dict[snp],effect_allele,non_effect_allele)
                 except KeyError:
                     hwe="."
                     rsq="."
