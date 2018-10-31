@@ -40,6 +40,7 @@ parser.add_argument("-v","--vcf",help="VCF for a specific chromosome",type=str,r
 parser.add_argument("-ka","--plink_case",help=".hwe file for cases",type=str,required=True)
 parser.add_argument("-ko","--plink_control",help=".hwe file for controls",type=str,required=True)
 parser.add_argument("-c","--chr",help="Chromosome of the VCF, 23 for X",type=int,required=True)
+parser.add_argument("-d","--header",help="Is there a header on -f file",action='store_true')
 args=parser.parse_args()
 
 ###############################
@@ -102,52 +103,49 @@ def parse_counts(list,effect_allele):
         n2_case,n1_case,n0_case=case.split("/")
         n2_control,n1_control,n0_control=control.split("/")
     else:
-        print >> sys.stderr, "Effect allele is neither minor or major allele from PLINK files\n")
+        print >> sys.stderr, "Effect allele is neither minor or major allele from PLINK files\n"
     n0=n0_case+n0_control
     n1=n1_case+n1_control
     n2=n2_case+n2_control
-    
+    eaf_case=(n2_case*2 + n1_case)/(ncase*2)
+    eaf_control=(n2_control*2 + n1_control)/(ncontrol*2)
     #n0,n1,n2,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case
-    parsed_list=[]
+    parsed_list=[n0,n1,n2,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case]
     return parsed_list
 
-def reformat_file(file,info_dict,geno_dict,chrom):
+def reformat_file(file,info_dict,geno_dict,chrom,header):
+    new_header="\t".join(["SNP","STRAND","BUILD","CHR","POS","EFFECT_ALLELE","NON_EFFECT_ALLELE","N","N0", "N1","N2","EAF","N0_controls","N1_controls","N2_controls","EAF_controls","N0_cases","N1_cases","N2_cases","EAF_cases","HWE","CALL_RATE","BETA","SE","PVAL","IMPUTED","INFO"])
+    print(new_header)
+    
     openCommand=open_file(file)
     with openCommand as f:
-        count=0
+        if header==True: #skip first line if there is a header
+            next(f)
         for line in f: #iterate over every line
-            if count==0:
-                header=line
-                count+=1
-                new_header="\t".join(["SNP","STRAND","BUILD","CHR","POS","EFFECT_ALLELE","NON_EFFECT_ALLELE","N","N0","N1","N2","EAF","N0_controls","N1_controls","N2_controls","EAF_controls","N0_cases","N1_cases","N2_cases","EAF_cases","HWE","CALL_RATE","BETA","SE","PVAL","IMPUTED","INFO"])
-                print(new_header)
-                count+=1
-            else:
-                ls = line.rstrip()
-                lineList=ls.split("\t")
-                if str(lineList[1]) == str(chrom): #restrict to per chrom so we can parallelize and use a single chrom VCF for info
-                    coord=":".join([lineList[1],lineList[2]])
-                    #pull info from other sources
-                    strand="+"
-                    build="37"
-                    call_rate="1.000"
-                    imputed="1"
-                    effect_allele=lineList[4]
-                    non_effect_allele=lineList[3]
-                    eaf=lineList[6]
-                    n=lineList[7]
-                    try:
-                        hwe=info_dict[coord]["hwe"]
-                        rsq=info_dict[coord]["rsq"]
-                        n0,n1,n2,eaf,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case=parse_counts(geno_dict[coord],effect_allele)
-                    except KeyError:
-                        hwe="."
-                        rsq="."
-                        n0,n1,n2,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case=["."]*12
-                        pass
-                    new_line="\t".join([lineList[0],strand,build,lineList[1],lineList[2],effect_allele,non_effect_allele,str(n), n0, n1, n2, str(eaf),n0_control, n1_control, n2_control,eaf_control, n0_case, n1_case, n2_case, eaf_case,hwe,call_rate,lineList[8],lineList[9],lineList[11],imputed,rsq])
-                    print(new_line)
-                    count+=1
+            ls = line.rstrip()
+            lineList=ls.split("\t")
+            if str(lineList[1]) == str(chrom): #restrict to per chrom so we can parallelize and use a single chrom VCF for info
+                coord=":".join([lineList[1],lineList[2]])
+                #pull info from other sources
+                strand="+"
+                build="37"
+                call_rate="1.000"
+                imputed="1"
+                effect_allele=lineList[4]
+                non_effect_allele=lineList[3]
+                eaf=lineList[6]
+                n=lineList[7]
+                try:
+                    hwe=info_dict[coord]["hwe"]
+                    rsq=info_dict[coord]["rsq"]
+                    n0,n1,n2,eaf,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case=parse_counts(geno_dict[coord],effect_allele)
+                except KeyError:
+                    hwe="."
+                    rsq="."
+                    n0,n1,n2,eaf_case,eaf_control,n0_control,n1_control,n2_control,n0_case,n1_case,n2_case=["."]*11
+                    pass
+                new_line="\t".join([lineList[0],strand,build,lineList[1],lineList[2],effect_allele,non_effect_allele,str(n), n0, n1, n2, str(eaf),n0_control, n1_control, n2_control,eaf_control, n0_case, n1_case, n2_case, eaf_case,hwe,call_rate,lineList[8],lineList[9],lineList[11],imputed,rsq])
+                print(new_line)
             
 
 #########################
@@ -158,7 +156,7 @@ def main():
                                    
     info_dict=info(args.info) # read in hwe and rsq from a separate file
     geno_dict=geno_counts(args.plink_case,args.plink_control)
-    reformat_file(args.file,info_dict,geno_dict, args.chr)
+    reformat_file(args.file,info_dict,geno_dict, args.chr,args.header)
     
 if __name__ == "__main__":
     main()
