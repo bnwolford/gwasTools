@@ -156,7 +156,7 @@ freqtable <- freqtable[order(-as.numeric(gsub("[\\[\\(](.+),.+","\\1",names(freq
 freqtable <- freqtable[freqtable > 0]
 
 ##initialize variables to return lambda values per MAF bin and per percentile
-lambda_file_name<-paste0(opt$prefix,"_lambda.txt")
+lambda_file_name<-paste0(opt$prefix,"_percentiles_lambda.txt")
 lambda_df<-NULL
 
 
