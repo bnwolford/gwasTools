@@ -18,7 +18,7 @@ option_list <- list(
   make_option("--af",type="character",default="AF",
               help="name of column with AF [default='AF']"),
   make_option("--af_col",type="numeric",default=0,
-              help="1 based column with AF"),
+              help="1 based column with AF, used when there is not a header"),
   make_option("--colName",type="character",default="MAF",
               help="name of new column with MAF [default='MAF']") 
 )
@@ -29,16 +29,25 @@ args <- parse_args(parser, positional_arguments = 0)
 opt <- args$options
 print(opt)
 
-#check for required arguments
+##check for required arguments
 if (opt$input=="" || opt$output=="") {
     stop("Please provide --input and --output arguments\n")
 }
 
-#open file, even if zipped
+
+##open file, even if zipped
 if (grepl('.gz',opt$input)) {
-    file <- fread(paste0("zcat ",opt$input),header=T)
+    if (opt$af_col !=0) { #using value instead of header name so assuming no header present 
+        file <- fread(paste0("zcat ",opt$input),header=F)
+    } else {
+        file <- fread(paste0("zcat ",opt$input),header=T)
+    }
 } else {
-    file <- fread(opt$input, header=T)
+    if (opt$af_col !=0) {  #using value instead of header name so assuming no header present
+        file <- fread(opt$input, header=F)
+    } else {
+        file <- fread(opt$input, header=T)
+    }    
 }
 
 ##  calculate af from maf 
@@ -57,4 +66,8 @@ colnames(file)[colnames(file)=="maf"] <- opt$colName
 
 #write file
 filename<-opt$output
-write.table(x=file,file=filename,col.names=T,row.names=F,quote=F,sep="\t")
+if (opt$af_col !=0) {  #using value instead of header name so assuming no header present
+    write.table(x=file,file=filename,col.names=F,row.names=F,quote=F,sep="\t")
+} else {
+ write.table(x=file,file=filename,col.names=T,row.names=F,quote=F,sep="\t")
+}
