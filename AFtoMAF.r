@@ -12,13 +12,15 @@ library(optparse)
 
 option_list <- list(
   make_option("--input", type="character", default="",
-    help="Input file, tab delimited, can be gzipped"),   
+              help="Input file, tab delimited, can be gzipped"),   
   make_option("--output", type="character", default="",
-    help="Name for output file"),   
+              help="Name for output file"),   
   make_option("--af",type="character",default="AF",
-    help="name of column with AF [default='AF']"),
+              help="name of column with AF [default='AF']"),
+  make_option("--af_col",type="numeric",default=0,
+              help="1 based column with AF"),
   make_option("--colName",type="character",default="MAF",
-    help="name of new column with MAF [default='MAF']") 
+              help="name of new column with MAF [default='MAF']") 
 )
 
 parser <- OptionParser(usage="%prog [options]", option_list=option_list, description="This script converts allele frequency to minor allele frequency in a new column titled MAF or --colName and writes the output to a new file ")
@@ -34,13 +36,16 @@ if (opt$input=="" || opt$output=="") {
 
 #open file, even if zipped
 if (grepl('.gz',opt$input)) {
-    file <- fread(paste(sep=" ","zcat",opt$input),header=T)
+    file <- fread(paste0("zcat ",opt$input),header=T)
 } else {
     file <- fread(opt$input, header=T)
 }
 
-#calcualte maf from af    
-if (opt$af %in% colnames(file)) { #check maf column exists
+##  calculate af from maf 
+if (opt$af_col != 0) {
+    file$maf<-as.numeric(file[opt$af_col])
+    file$maf[which(file$maf > 0.5)] <- 1 - file$maf[which(file$maf > 0.5)]
+} else if (opt$af %in% colnames(file)) { #check maf column exists
     file$maf<-as.numeric(file[[opt$af]]) #make new column
     file$maf[which(file$maf > 0.5)] <- 1 - file$maf[which(file$maf > 0.5)] #convert AF to MAF
 } else {
