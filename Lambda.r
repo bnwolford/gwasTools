@@ -163,12 +163,13 @@ lambda_df<-NULL
 fbin <- character(0)
 
 for(f in 1:length(freqtable)){
+    fbin <- c(fbin,names(freqtable)[f])
     for (q in seq(.1,.9,0.1)){
-        fbin <- c(fbin,names(freqtable)[f])
         fsnps <- which(gwas$freqbin ==names(freqtable)[f])
         lambda<-lambdaGC(gwas[[ycol]][fsnps],q) #calculate lambda for this bin
-        lambda_df<-rbind(lambda_df,data.frame(lambda=lambda,frequency_bin=fbin[f],quantile=q)) #make lambda data frame
-}}
+        lambda_df<-rbind(lambda_df,data.frame(lambda=lambda,frequency_bin=fbin,quantile=q))
+    }
+}
 
 ##write data frame of lambda values
 write.table(x=lambda_df,file=lambda_file_name,col.names=T,row.names=F,quote=F,sep="\t")
