@@ -69,6 +69,7 @@ lambdaGC<-function(log10P,qval){
     char<-sapply(log10P,log10toP) #convert from log10P to character(P) vector
     numer<-sapply(char,function(x) {as.numeric(x)}) #convert to numeric vector
     num<-qchisq(quantile(numer,qval),df=1,lower.tail=F) #calculate numerator
+    num<-num[[1]]
     lam<-num/denom #calculate lambda
     return(lam)
 }
@@ -163,11 +164,11 @@ lambda_df<-NULL
 fbin <- character(0)
 
 for(f in 1:length(freqtable)){
-    fbin <- c(fbin,names(freqtable)[f])
+    fbin <- names(freqtable)[f]
     for (q in seq(.1,.9,0.1)){
-        fsnps <- which(gwas$freqbin ==names(freqtable)[f])
+        fsnps <- which(gwas$freqbin == fbin)
         lambda<-lambdaGC(gwas[[ycol]][fsnps],q) #calculate lambda for this bin
-        lambda_df<-rbind(lambda_df,data.frame(lambda=lambda,frequency_bin=fbin,quantile=q))
+        lambda_df<-rbind(lambda_df,data.frame(lambda=lambda,frequency_bin=fbin,quantile=q)) #make lambda data frame
     }
 }
 
