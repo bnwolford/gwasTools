@@ -52,7 +52,7 @@ if (grepl('.gz',opt$input)) {
 
 ##  calculate af from maf 
 if (opt$af_col != 0) {
-    file$maf<-as.numeric(file[opt$af_col])
+    file$maf<-as.numeric(file[[opt$af_col]])
     file$maf[which(file$maf > 0.5)] <- 1 - file$maf[which(file$maf > 0.5)]
 } else if (opt$af %in% colnames(file)) { #check maf column exists
     file$maf<-as.numeric(file[[opt$af]]) #make new column
