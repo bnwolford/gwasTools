@@ -37,7 +37,9 @@ option_list <- list(
     make_option("--max",type="numeric",default=0,
                 help="Maximum number to filter on (keep values <= this"),
     make_option("--min",type="numeric",default=0,
-                 help="Minimum number to filter on (keep values > to this")
+                help="Minimum number to filter on (keep values > to this"),
+    make_option("--countour",type="logical",default=FALSE, action="store_true",
+                help="Use geom-density_2d to get a contour plot of the data")
 )
 
 parser <- OptionParser(usage="%prog [options]", option_list=option_list, description="This script creates scatter plots comparing values from two columns of an input file (e.g. MAF vs Beta) and can print the Pearson's correlation to standard out.\n")
@@ -54,6 +56,7 @@ inputfile <- opt$input
 title <- opt$title
 log <- opt$negLog10
 cor <- opt$cor
+contour <- opt$contour
 
 #check for required arguments
 if (inputfile=="" || prefix =="" || valcol1=="" || valcol2=="") {
@@ -109,10 +112,18 @@ if (cor==TRUE){
     cat(correlation)
 }
 
+
 #plot
 png(paste0(prefix, ".png"),width=800,height=800)
-ggplot(data,aes(x=val1,y=val2)) + geom_point(alpha = 0.3) + theme_bw() + 
-geom_abline(slope = 1, color="red",linetype="dashed", size=1.5,alpha=0.5) + 
-theme(text = element_text(size=24),axis.text.x = element_text(size=24), axis.text.y = element_text(size=24), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"),plot.title = element_text(hjust = 0.5)) +
-labs(title=title,x=xlab,y=ylab)
+if (opt$countour==TRUE){
+    print(ggplot(data,aes(x=val1,y=val2)) + state_density_2d(aes(fill=stat(level)),geom="polygon") + scale_fill_gradient(low="darkblue",high="goldenrod2") +
+          geom_abline(slope = 1, color="red",linetype="dashed", size=1.5,alpha=0.5) +
+          theme(text = element_text(size=24),axis.text.x = element_text(size=24), axis.text.y = element_text(size=24), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"),plot.title = element_text(hjust = 0.5)) +
+          labs(title=title,x=xlab,y=ylab))
+} else {
+    print(ggplot(data,aes(x=val1,y=val2)) + geom_point(alpha = 0.3) + theme_bw() + 
+        geom_abline(slope = 1, color="red",linetype="dashed", size=1.5,alpha=0.5) + 
+        theme(text = element_text(size=24),axis.text.x = element_text(size=24), axis.text.y = element_text(size=24), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"),plot.title = element_text(hjust = 0.5)) +
+        labs(title=title,x=xlab,y=ylab))
+}
 dev.off()
