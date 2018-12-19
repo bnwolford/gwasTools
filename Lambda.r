@@ -36,7 +36,8 @@ option_list <- list(
   make_option("--log10p", type="logical", default=F,
               help="Input p.value column with -log10(p.value) [default=F]"),
   make_option("--exclude",type="character",default="",
-              help="File with SNP IDs to exclude. Assumes input file has SNP ID")
+              help="File with SNP IDs to exclude. Assumes input file has SNP ID"),
+  make_option("--all",action="store_true",help="Calculate lambda on all variants not per percentile")
               
 )
 
@@ -169,6 +170,13 @@ for(f in 1:length(freqtable)){
         fsnps <- which(gwas$freqbin == fbin)
         lambda<-lambdaGC(gwas[[ycol]][fsnps],q) #calculate lambda for this bin
         lambda_df<-rbind(lambda_df,data.frame(lambda=lambda,frequency_bin=fbin,quantile=q)) #make lambda data frame
+    }
+}
+
+if (opt$all){
+    for (q in seq(.1,.9,0.1)){
+        lambda_all<-lambdaGC(gwas[[ycol]],q)
+        lambda_df<-rbind(lambda_df,data.frame(lambda=lambda_all,frequency_bin="all",quantile=q)) #make lambda data frame
     }
 }
 
