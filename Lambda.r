@@ -88,10 +88,11 @@ print(opt)
 
 #open file, even if zipped
 if (grepl('.gz',opt$input)) {
-    gwas <- fread(paste(sep=" ","zcat",opt$input),header=T)
+    gwas <- fread(cmd=paste(sep=" ","zcat",opt$input),header=T)
 } else {
     gwas <- fread(opt$input, header=T)
 }
+
 
 #convert pvalues to -log10pvalue or use existing values in that scale
 if(!opt$log10p) {
