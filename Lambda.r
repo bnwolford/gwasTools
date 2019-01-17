@@ -170,14 +170,15 @@ for(f in 1:length(freqtable)){
     for (q in seq(.1,.9,0.1)){
         fsnps <- which(gwas$freqbin == fbin)
         lambda<-lambdaGC(gwas[[ycol]][fsnps],q) #calculate lambda for this bin
-        lambda_df<-rbind(lambda_df,data.frame(lambda=lambda,frequency_bin=fbin,quantile=q)) #make lambda data frame
+        nvar<-nrow(fsnps)
+        lambda_df<-rbind(lambda_df,data.frame(lambda=lambda,frequency_bin=fbin,quantile=q,Nvar=nvar)) #make lambda data frame
     }
 }
 
 if (opt$all){
     for (q in seq(.1,.9,0.1)){
         lambda_all<-lambdaGC(gwas[[ycol]],q)
-        lambda_df<-rbind(lambda_df,data.frame(lambda=lambda_all,frequency_bin="all",quantile=q)) #make lambda data frame
+        lambda_df<-rbind(lambda_df,data.frame(lambda=lambda_all,frequency_bin="all",quantile=q,Nvar=nvar)) #make lambda data frame
     }
 }
 
