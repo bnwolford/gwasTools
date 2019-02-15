@@ -64,7 +64,6 @@ Transform beta values from linear mixed model so they are comparable to beta val
     --pvalue PVALUE \
     --maintitle 'An Example QQ plot'
 
-
     Rscript ManhattanPlot.r 
     --input ExampleGWAS.txt \
     --prefix Example \
@@ -101,3 +100,12 @@ Transform beta values from linear mixed model so they are comparable to beta val
     --numCase 1000 \
     --numControl 4000 \
     --pathToFunc shiny_lmor_func.R
+    
+    Rscript Lambda.r 
+    --input ExampleGWAS.txt \
+    --prefix ExampleGWAS \ 
+    --af A1Freq \
+    --pvalue Logreg.pval \
+    --minMAF 1e-6
+    
+    
