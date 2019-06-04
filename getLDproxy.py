@@ -7,7 +7,6 @@ import gzip
 import sys
 import re
 import argparse
-import pysam
 import subprocess
 from collections import namedtuple
 from contextlib import closing
@@ -15,11 +14,10 @@ from contextlib import closing
 import requests
 from tempfile import NamedTemporaryFile
 
-argparser = argparse.ArgumentParser('Finds proxy-SNPs given coodinates or rsID')
+argparser = argparse.ArgumentParser('Finds proxy-SNPs given coodinates or rsID and checks their availability in a study-speciifc VCF file. Outputs *bcftools.txt which is the bcftools query output, *proxy.txt which is the results from the LDproxy query and *study.txt which is the snp id for snps of interest or their proxies that is in the study specific VCF')
 argparser.add_argument("--in_rs",type=str,help="Inputt file with new line separated rsIDs")
 argparser.add_argument("--in_coord",type=str,help="Input file with new line separated coordinates X:XXX")
 argparser.add_argument("--dbsnp_vcf",required=True,type=str,help="VCF file from dbSNP with coordinates and rsIDs. .tbi file required in the same directory.")
-argparser.add_argument("--proxy",action='store_true',help="Look up proxy information for all SNPs provided")
 argparser.add_argument("--population",help="Population code for r2 info",default="CEU",type=str)
 argparser.add_argument("--minrsq",help="Minimum rsq for printing variant",default=0.8, type=float)
 argparser.add_argument("--token",type=str, default="5281fa13d3e3")
@@ -60,7 +58,7 @@ def read_rsid(rs_file,vcf,convert,token,pop,minrsq,out):
                 rsid_list.append(ls)
         count=0
         error_list=[] #initialize list of SNPs of interest with failed queries
-        fn=".".join([out,"txt"]) #filename
+        fn=".".join([out,"proxy.txt"]) #filename
         with open(fn, 'w') as output:
             
             for r in rsid_list: #for every SNP of interest
@@ -117,8 +115,8 @@ def get_proxy(token,pop,minrsq,rsid):
 #does it need coordinattes or rsids
 
 def check_data(bcf,out,vcf):
-    """ Functiton to check what SNPs of interest and their proxy SNPs exist in HUNT data"""
-    fn=".".join([out,"txt"])
+    """ Function to check what SNPs of interest and their proxy SNPs exist in HUNT data"""
+    fn=".".join([out,"proxy.txt"])
     command=open_zip(fn)
     count=0
     marker_bed = NamedTemporaryFile(delete=True,suffix=".bed")
@@ -135,9 +133,8 @@ def check_data(bcf,out,vcf):
                     coords=line_list[1].split(":")
                     chrom=coords[0].replace("chr","")
                     tmp.write("\t".join([chrom,str(int(coords[1])-1),coords[1]])) #write bed file with coordinate
-                    marker_dict[line_list[1]]=line_list[10]
+                    marker_dict[line_list[1]]=line_list[10] #save to dictionary to reference later 
         f.close()
-        print(marker_dict)
 
 
     #bcftools query
@@ -146,7 +143,7 @@ def check_data(bcf,out,vcf):
     tmp.close()
     
     #match back up with coords so we know what snp of interest it pertains to
-    final_fn=".".join([out,"inHUNT.txt"])
+    final_fn=".".join([out,"study.txt"])
     with open(final_fn,'w+') as final: #open file to write 
         bcommand=open_zip(bcf_fn)
         with bcommand as bcf_output: #open bcf query  output 
