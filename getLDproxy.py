@@ -18,9 +18,9 @@ argparser = argparse.ArgumentParser('Finds proxy-SNPs given coodinates or rsID a
 argparser.add_argument("--in_rs",type=str,help="Inputt file with new line separated rsIDs")
 argparser.add_argument("--in_coord",type=str,help="Input file with new line separated coordinates X:XXX")
 argparser.add_argument("--dbsnp_vcf",required=True,type=str,help="VCF file from dbSNP with coordinates and rsIDs. .tbi file required in the same directory.")
-argparser.add_argument("--population",help="Population code for r2 info",default="CEU",type=str)
+argparser.add_argument("--population",help="Population code for r2 info [default=CEU]",default="CEU",type=str)
 argparser.add_argument("--minrsq",help="Minimum rsq for printing variant",default=0.8, type=float)
-argparser.add_argument("--token",type=str, default="5281fa13d3e3")
+argparser.add_argument("--token",type=str, default="5281fa13d3e3",help="Token, sign up here https://ldlink.nci.nih.gov/?tab=apiaccess",required=True)
 argparser.add_argument("--convert",action='store_true',help="Convert rsid to coordinate or vice versa")
 argparser.add_argument("--study_vcf",type=str,help="VCF with sites that are analyzed in HUNT",required=True)
 argparser.add_argument("--output",type=str,help="Output prefix [default=LDproxy]",default="LDproxy")
@@ -43,10 +43,7 @@ def read_coord(coord_file,vcf,convert):
     
 def read_rsid(rs_file,vcf,convert,token,pop,minrsq,out):
     if convert==True:
-        #TO DO
-         #query_string=''.join("'-i'%ID=@",rs_file,"'")
-        #subprocess.call(["bcftools","query",query_string, "-f'%CHROM:%POS'",vcf])
-        # subprocess.call([bcftools,"query",vcf,"-R",tmp.name,"-f","%ID\t%CHROM\t%POS\t%REF\t%ALT[\t%DS]\n","-o",outName])
+        #TO DO: convert rsID to coordiante
         print >> sys.stderr, "This function not available yet"
         return 0
     else:
@@ -74,7 +71,10 @@ def read_rsid(rs_file,vcf,convert,token,pop,minrsq,out):
                 else: #if error, save the snps of interest to output at the end 
                     error_list.append(r)
 
-            for err in error_list: #print error SNPs 
+            for err in error_list: #print error SNPs
+                #TO DO: get coordinates for SNPs with rsID and no proxy so we can still serach study for them
+                #query_string=''.join("'-i'%ID=@",rs_file,"'")
+                #subprocess.call(["bcftools","query",query_string, "-f'%CHROM:%POS'",vcf])
                 output.write("\t".join(["\t".join(["NA"]*10),err]))
                 output.write("\n")
 
@@ -132,8 +132,11 @@ def check_data(bcf,out,vcf):
                 else:
                     coords=line_list[1].split(":")
                     chrom=coords[0].replace("chr","")
-                    tmp.write("\t".join([chrom,str(int(coords[1])-1),coords[1]])) #write bed file with coordinate
-                    marker_dict[line_list[1]]=line_list[10] #save to dictionary to reference later 
+                    if chrom=="NA": #To do: fix this so we have coordinates even for SNPs not in the LDproxy query 
+                        next
+                    else:
+                        tmp.write("\t".join([chrom,str(int(coords[1])-1),coords[1]])) #write bed file with coordinate
+                        marker_dict[line_list[1]]=line_list[10] #save to dictionary to reference later 
         f.close()
 
 
@@ -182,3 +185,4 @@ if __name__ == '__main__':
     #check HUNT data for snps of interest and their proxy snps, output a list of SNP IDs which can be used with a downstream script to pull out genotypes 
     check_data(args.bcftools,args.output,args.study_vcf)
 
+ #TO DO: add open targets API 
