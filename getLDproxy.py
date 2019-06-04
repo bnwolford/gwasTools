@@ -24,7 +24,7 @@ argparser.add_argument("--population",help="Population code for r2 info",default
 argparser.add_argument("--minrsq",help="Minimum rsq for printing variant",default=0.8, type=float)
 argparser.add_argument("--token",type=str, default="5281fa13d3e3")
 argparser.add_argument("--convert",action='store_true',help="Convert rsid to coordinate or vice versa")
-argparser.add_argument("--hunt_vcf",type=str,help="VCF with sites that are analyzed in HUNT",required=True)
+argparser.add_argument("--study_vcf",type=str,help="VCF with sites that are analyzed in HUNT",required=True)
 argparser.add_argument("--output",type=str,help="Output prefix [default=LDproxy]",default="LDproxy")
 argparser.add_argument("--bcftools",type=str,help="Path to bcftools [default='bcftools']",default="bcftools")
                        
@@ -147,19 +147,17 @@ def check_data(bcf,out,vcf):
     
     #match back up with coords so we know what snp of interest it pertains to
     final_fn=".".join([out,"inHUNT.txt"])
-    with open(final_fn,'w') as final:
+    with open(final_fn,'w+') as final: #open file to write 
         bcommand=open_zip(bcf_fn)
-        with bcommand as bcf_output:
+        with bcommand as bcf_output: #open bcf query  output 
             for line in bcf_output:
                 ls=line.rstrip()
                 line_list=ls.split("\t")
                 coordinate="".join(["chr",line_list[0],":",line_list[1]])
-                print(coordinate)
                 if coordinate in marker_dict.keys():
-                    snp_of_interest=marker_dict[coordinate]
+                    snp_of_interest=marker_dict[coordinate] #match up with snp of interest rsID 
                     final.write("\t".join(["\t".join(line_list),snp_of_interest]))
                     final.write("\n")
-
                 
     bcf_output.close()
     final.close()
@@ -185,5 +183,5 @@ if __name__ == '__main__':
         raise Exception('Supply either rsID or coordinate file\n')
 
     #check HUNT data for snps of interest and their proxy snps, output a list of SNP IDs which can be used with a downstream script to pull out genotypes 
-    check_data(args.bcftools,args.output,args.hunt_vcf)
+    check_data(args.bcftools,args.output,args.study_vcf)
 
