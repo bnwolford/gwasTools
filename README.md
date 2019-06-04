@@ -1,7 +1,7 @@
 # gwasTools
 
 A collection of R scripts that might be useful for exploring and plotting GWAS results.
-Derived from scripts from Dr. Lars Fritsche, Dr. Wei Zhou, Dr. Sarah Graham.
+Some are derived from scripts from Dr. Lars Fritsche, Dr. Wei Zhou, Dr. Sarah Graham.
 
 The following R packages need to be installed for running these Rscripts:
 
@@ -54,6 +54,10 @@ Create scatterplots to compare values from two columns in a data frame. Print Pe
 Transform beta values from linear mixed model so they are comparable to beta values from logistic/linear regression. This implements work from Cook et al (doi:10.1038/ejhg.2016.150) and Lloyd-Jones et al (doi:10.1534/genetics.117.300360). Please check out the required/available Rscript parameters by using the following command:
 
     Rscript transformBeta.r --help 
+    
+## getLDproxy.py
+
+Given a list of rsIDs for SNPs of interest, find SNPs in linkage disequlibrium (proxy SNPs) using NCBI LDproxy API request. Search a VCF to see if SNPs of interest of their proxies are present in the study of interest. rsID to coordinate conversion and vice versa is in development. 
 
 ### Examples (run from command line):
 
@@ -107,5 +111,8 @@ Transform beta values from linear mixed model so they are comparable to beta val
     --af A1Freq \
     --pvalue Logreg.pval \
     --minMAF 1e-6
+    
+    python3 getLDproxy.py --in_rs rsID.txt \
+    --dbsnp_vcf All_20180423.vcf.gz --proxy --study_vcf study.vcf.gz 
     
     
