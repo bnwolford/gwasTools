@@ -57,7 +57,9 @@ Transform beta values from linear mixed model so they are comparable to beta val
     
 ## getLDproxy.py
 
-Given a list of rsIDs for SNPs of interest, find SNPs in linkage disequlibrium (proxy SNPs) using NCBI LDproxy API request. Search a VCF to see if SNPs of interest of their proxies are present in the study of interest. rsID to coordinate conversion and vice versa is in development. 
+Given a list of rsIDs for SNPs of interest, find SNPs in linkage disequlibrium (proxy SNPs) using NCBI LDproxy API request. Search a VCF to see if SNPs of interest of their proxies are present in the study of interest. rsID to coordinate conversion and vice versa is in development. Written in Python 2.7.14 with requests module version '2.18.4'.
+
+    python getLDproxy.py --help
 
 ### Examples (run from command line):
 
@@ -112,7 +114,8 @@ Given a list of rsIDs for SNPs of interest, find SNPs in linkage disequlibrium (
     --pvalue Logreg.pval \
     --minMAF 1e-6
     
-    python3 getLDproxy.py --in_rs rsID.txt \
-    --dbsnp_vcf All_20180423.vcf.gz --proxy --study_vcf study.vcf.gz 
+    python getLDproxy.py --in_rs rsID.txt \
+    --dbsnp_vcf All_20180423.vcf.gz \
+    --study_vcf study.vcf.gz 
     
     
