@@ -74,12 +74,11 @@ def read_rsid(rs_file,vcf,convert,token,pop,minrsq,out):
             for err in error_list: #print error SNPs
                 bcftols_out = NamedTemporaryFile(delete=True)
                 #TO DO: get coordinates for SNPs with rsID and no proxy so we can still serach study for them
-                query_string=''.join("'-i'%ID=@",rs_file,"'")
+                query_string=''.join(["'-i'%ID=@",rs_file,"'"])
                 subprocess.call(["bcftools","query",query_string, "-f'%CHROM:%POS'",vcf,"-o",bcftools_out])
                 with open(marker_bed.name, 'w') as tmp:
                     for line in tmp:
-                        
-
+                        output.write("\t".join(err,line.rstrip(),["\t".join(["NA"]*8),err]))
                         output.write("\n")
 
         output.close()
