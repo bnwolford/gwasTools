@@ -43,7 +43,7 @@ def read_coord(coord_file,vcf,convert):
     
 def read_rsid(rs_file,vcf,convert,token,pop,minrsq,out):
     if convert==True:
-        #TO DO: convert rsID to coordiante
+        #TO DO: convert rsID to coordinate
         print >> sys.stderr, "This function not available yet"
         return 0
     else:
@@ -72,11 +72,15 @@ def read_rsid(rs_file,vcf,convert,token,pop,minrsq,out):
                     error_list.append(r)
 
             for err in error_list: #print error SNPs
+                bcftols_out = NamedTemporaryFile(delete=True)
                 #TO DO: get coordinates for SNPs with rsID and no proxy so we can still serach study for them
-                #query_string=''.join("'-i'%ID=@",rs_file,"'")
-                #subprocess.call(["bcftools","query",query_string, "-f'%CHROM:%POS'",vcf])
-                output.write("\t".join(["\t".join(["NA"]*10),err]))
-                output.write("\n")
+                query_string=''.join("'-i'%ID=@",rs_file,"'")
+                subprocess.call(["bcftools","query",query_string, "-f'%CHROM:%POS'",vcf,"-o",bcftools_out])
+                with open(marker_bed.name, 'w') as tmp:
+                    for line in tmp:
+                        
+
+                        output.write("\n")
 
         output.close()
 
@@ -119,7 +123,7 @@ def check_data(bcf,out,vcf):
     fn=".".join([out,"proxy.txt"])
     command=open_zip(fn)
     count=0
-    marker_bed = NamedTemporaryFile(delete=True,suffix=".bed")
+    marker_bed = NamedTemporaryFile(delete=True,suffix=".bed") #make temporary file for query
     marker_dict={}
     with open(marker_bed.name, 'w') as tmp:
         with command as f:
@@ -129,14 +133,14 @@ def check_data(bcf,out,vcf):
                 if count==0: #skip header
                     count=count+1
                     next
+                if line_list[0]=="NA": #To do: fix this so we have coordinates even for SNPs not in the LDproxy query
+                    print(line_list)
+                    next
                 else:
                     coords=line_list[1].split(":")
                     chrom=coords[0].replace("chr","")
-                    if chrom=="NA": #To do: fix this so we have coordinates even for SNPs not in the LDproxy query 
-                        next
-                    else:
-                        tmp.write("\t".join([chrom,str(int(coords[1])-1),coords[1]])) #write bed file with coordinate
-                        marker_dict[line_list[1]]=line_list[10] #save to dictionary to reference later 
+                    tmp.write("\t".join([chrom,str(int(coords[1])-1),coords[1]])) #write bed file with coordinate
+                    marker_dict[line_list[1]]=line_list[10] #save to dictionary to reference later 
         f.close()
 
 
