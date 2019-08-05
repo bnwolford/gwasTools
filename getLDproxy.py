@@ -14,6 +14,8 @@ from contextlib import closing
 import requests
 from tempfile import NamedTemporaryFile
 
+### Written for Python 2.7
+
 argparser = argparse.ArgumentParser('Finds proxy-SNPs given coodinates or rsID and checks their availability in a study-speciifc VCF file. Outputs *bcftools.txt which is the bcftools query output, *proxy.txt which is the results from the LDproxy query and *study.txt which is the snp id for snps of interest or their proxies that is in the study specific VCF')
 argparser.add_argument("--in_rs",type=str,help="Inputt file with new line separated rsIDs")
 argparser.add_argument("--in_coord",type=str,help="Input file with new line separated coordinates X:XXX")
@@ -25,8 +27,9 @@ argparser.add_argument("--convert",action='store_true',help="Convert rsid to coo
 argparser.add_argument("--study_vcf",type=str,help="VCF with sites that are analyzed in HUNT",required=True)
 argparser.add_argument("--output",type=str,help="Output prefix [default=LDproxy]",default="LDproxy")
 argparser.add_argument("--bcftools",type=str,help="Path to bcftools [default='bcftools']",default="bcftools")
-                       
+
 def open_zip(f):
+    """open files"""
     if ".gz" in f:
         command=gzip.open(f,"rt")
         print >> sys.stderrr, "Opening gzipped file %s\n" % f
@@ -42,12 +45,13 @@ def read_coord(coord_file,vcf,convert):
     return 0
     
 def read_rsid(rs_file,vcf,convert,token,pop,minrsq,out):
+    """ Read all the rsIDs and look for LD buddies. Create a flat file of SNPs of interest and LD buddies if found. """
     if convert==True:
         #TO DO: convert rsID to coordinate
         print >> sys.stderr, "This function not available yet"
         return 0
     else:
-        rsid_list=[]
+        rsid_list=[] #initialize rsid list
         command=open_zip(rs_file)
         with command as f:
             for line in f:
@@ -59,8 +63,8 @@ def read_rsid(rs_file,vcf,convert,token,pop,minrsq,out):
         with open(fn, 'w') as output:
             
             for r in rsid_list: #for every SNP of interest
-                query_list=get_proxy(token,pop,minrsq,r) #perform query 
-                if query_list!=20: #if no error from get_proxy
+                query_list=get_proxy(token,pop,minrsq,r) #perform query
+                if query_list!=20: #if no custom error code 20 from get_proxy
                     if count==0: #print header once for all SNPs of interest
                         output.write("\t".join(["\t".join(query_list[0]),"SNP_of_interest"]))
                         output.write("\n")
@@ -70,21 +74,34 @@ def read_rsid(rs_file,vcf,convert,token,pop,minrsq,out):
                         output.write("\n")
                 else: #if error, save the snps of interest to output at the end 
                     error_list.append(r)
+        output.close()
+        
+        #get coordinates for SNPs with rsID and no proxy so we can still search study for them
+        noLD_out=".".join([out,"noLD.txt"]) #write a file with one rsID per line of the SNPs without LD buddies
+        with open(noLD_out,"w") as noLD:
+            for err in error_list:
+                noLD.write(err)
+                noLD.write("\n")
+        noLD.close()
+        query_string=''.join(["%ID=@",noLD_out]) #will query the file with the no LD buddy SNPs
+        p=subprocess.Popen(["bcftools","query","-f","%ID:%CHROM:%POS\n","-i",query_string,vcf],shell=False,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        so,se=p.communicate()
+        coord_list=so.splitlines()
 
-            for err in error_list: #print error SNPs
-                bcftols_out = NamedTemporaryFile(delete=True)
-                #TO DO: get coordinates for SNPs with rsID and no proxy so we can still serach study for them
-                query_string=''.join(["'-i'%ID=@",rs_file,"'"])
-                subprocess.call(["bcftools","query",query_string, "-f'%CHROM:%POS'",vcf,"-o",bcftools_out])
-                with open(marker_bed.name, 'w') as tmp:
-                    for line in tmp:
-                        output.write("\t".join(err,line.rstrip(),["\t".join(["NA"]*8),err]))
-                        output.write("\n")
+        #To Do: how many variants don't have LD buddies and are also not the VCF that we check for coordinates
+        # as it stands now we will skip these when querying because we don't have coordinates 
+        if len(error_list)!=len(coord_list): #check that these match up
+            print >> sys.stderr, "rsIDs for markers without LD buddies are not equal to coordinates found\n"
+
+        with open(fn, 'a') as output:
+            for coord in coord_list:
+                rsid,chrom,pos=coord.split(":")
+                output.write("\t".join([rsid,"".join(["chr",chrom,":",pos]),"\t".join(["NA"]*8),rsid]))
+                output.write("\n")
 
         output.close()
 
     return 0
-
 
         
 def get_proxy(token,pop,minrsq,rsid):
@@ -96,6 +113,7 @@ def get_proxy(token,pop,minrsq,rsid):
         return 20
 #    print(r.text)
     query_list=r.text.split("\n")
+    #print(query_list)
     for check in query_list: #handle exceptions when request is successful but rsID is not present
         if 'error' in check:
             print >> sys.stderr, "Error found in request output. rsID is probably not in 1000G reference"
@@ -179,13 +197,13 @@ if __name__ == '__main__':
     if args.in_rs is not None and args.in_coord is not None:
         raise Exception('Supply rsID or coordinates but not both\n')
     elif args.in_rs is not None:
-       read_rsid(args.in_rs,args.dbsnp_vcf,args.convert,args.token,args.population,args.minrsq,args.output)
+       read_rsid(args.in_rs,args.dbsnp_vcf,args.convert,args.token,args.population,args.minrsq,args.output) #rsID input
     elif args.in_coord is not None:
-        read_coord(args.in_rs,args.dbsnp_vcf,args.convert)
+        read_coord(args.in_rs,args.dbsnp_vcf,args.convert) #coordinate input 
     else:
         raise Exception('Supply either rsID or coordinate file\n')
 
     #check HUNT data for snps of interest and their proxy snps, output a list of SNP IDs which can be used with a downstream script to pull out genotypes 
-    check_data(args.bcftools,args.output,args.study_vcf)
+    #check_data(args.bcftools,args.output,args.study_vcf)
 
  #TO DO: add open targets API 
