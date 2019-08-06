@@ -60,10 +60,10 @@ def read_rsid(rs_file,vcf,convert,token,pop,minrsq,out):
         count=0
         error_list=[] #initialize list of SNPs of interest with failed queries
         fn=".".join([out,"proxy.txt"]) #filename
-        with open(fn, 'w') as output:
+        with open(fn, 'w') as output: #open file to write to
             
             for r in rsid_list: #for every SNP of interest
-                query_list=get_proxy(token,pop,minrsq,r) #perform query
+                query_list=get_proxy(token,pop,minrsq,r) #perform query for LD proxies
                 if query_list!=20: #if no custom error code 20 from get_proxy
                     if count==0: #print header once for all SNPs of interest
                         output.write("\t".join(["\t".join(query_list[0]),"SNP_of_interest"]))
@@ -75,6 +75,7 @@ def read_rsid(rs_file,vcf,convert,token,pop,minrsq,out):
                 else: #if error, save the snps of interest to output at the end 
                     error_list.append(r)
         output.close()
+        print(len(error_list))
         
         #get coordinates for SNPs with rsID and no proxy so we can still search study for them
         noLD_out=".".join([out,"noLD.txt"]) #write a file with one rsID per line of the SNPs without LD buddies
@@ -111,7 +112,7 @@ def get_proxy(token,pop,minrsq,rsid):
     except requests.exceptions.RequestException as e:
         print >> sys.stderr, "Exception found %s" % e
         return 20
-#    print(r.text)
+#    print(r.text    query_list=r.text.split("\n")
     query_list=r.text.split("\n")
     #print(query_list)
     for check in query_list: #handle exceptions when request is successful but rsID is not present
@@ -129,7 +130,7 @@ def get_proxy(token,pop,minrsq,rsid):
                 new_query_list.append(entry_list) #keep header
             elif float(entry_list[6]) >= minrsq: #keep results meeting min rsq 
                 new_query_list.append(entry_list)
-    return new_query_list
+    return new_query_list #list of all variants meeting minimum rsq
 
     #use Brooke's API token for  https://ldlink.nci.nih.gov/?tab=apiaccess
     #curl -k -X GET 'https://ldlink.nci.nih.gov/LDlinkRest/ldproxy?var=rs3&pop=MXL&r2_d=r2&token=5281fa13d3e3'
@@ -137,7 +138,7 @@ def get_proxy(token,pop,minrsq,rsid):
 
 def check_data(bcf,out,vcf):
     """ Function to check what SNPs of interest and their proxy SNPs exist in HUNT data"""
-    fn=".".join([out,"proxy.txt"])
+    fn=".".join([out,"proxy.txt"]) #the out file where the results were written from read_rsID
     command=open_zip(fn)
     count=0
     marker_bed = NamedTemporaryFile(delete=True,suffix=".bed") #make temporary file for query
@@ -150,14 +151,11 @@ def check_data(bcf,out,vcf):
                 if count==0: #skip header
                     count=count+1
                     next
-                if line_list[0]=="NA": #To do: fix this so we have coordinates even for SNPs not in the LDproxy query
-                    print(line_list)
-                    next
                 else:
                     coords=line_list[1].split(":")
                     chrom=coords[0].replace("chr","")
                     tmp.write("\t".join([chrom,str(int(coords[1])-1),coords[1]])) #write bed file with coordinate
-                    marker_dict[line_list[1]]=line_list[10] #save to dictionary to reference later 
+                    marker_dict[line_list[1]]=[line_list[10],line_list[6]] #save to dictionary to reference later 
         f.close()
 
 
@@ -176,8 +174,9 @@ def check_data(bcf,out,vcf):
                 line_list=ls.split("\t")
                 coordinate="".join(["chr",line_list[0],":",line_list[1]])
                 if coordinate in marker_dict.keys():
-                    snp_of_interest=marker_dict[coordinate] #match up with snp of interest rsID 
-                    final.write("\t".join(["\t".join(line_list),snp_of_interest]))
+                    snp_of_interest=marker_dict[coordinate][0] #match up with snp of interest rsID
+                    r2=marker_dict[coordinate][1]
+                    final.write("\t".join(["\t".join(line_list),snp_of_interest,r2]))
                     final.write("\n")
                 
     bcf_output.close()
@@ -204,6 +203,6 @@ if __name__ == '__main__':
         raise Exception('Supply either rsID or coordinate file\n')
 
     #check HUNT data for snps of interest and their proxy snps, output a list of SNP IDs which can be used with a downstream script to pull out genotypes 
-    #check_data(args.bcftools,args.output,args.study_vcf)
+    check_data(args.bcftools,args.output,args.study_vcf)
 
  #TO DO: add open targets API 
