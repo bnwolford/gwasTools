@@ -29,9 +29,9 @@ names(old)<-c("old_chr","old_poss","old_pose")
 names(new)<-c("new_chr","new_poss","new_pose")
 names(unmapped)<-c("un_chr","un_poss","un_pose")
 
-old$old_coord<-paste(sep=":",old$old_chr,old$old_poss)
-new$new_coord<-paste(sep=":",new$new_chr,new$new_poss)
-unmapped$coord<-paste(sep=":",unmapped$un_chr,unmapped$un_poss)
+old$old_coord<-paste(sep=":",old$old_chr,old$old_pose)
+new$new_coord<-paste(sep=":",new$new_chr,new$new_pose)
+unmapped$coord<-paste(sep=":",unmapped$un_chr,unmapped$un_pose)
 
 #initialize variables as we are adding columns to the old file
 old$new_chr<-as.character(NA)
