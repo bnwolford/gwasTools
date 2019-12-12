@@ -53,6 +53,6 @@ for (i in 1:nrow(old)){
  
 #write output
 filename<-paste(sep=".",opt$prefix,"txt")
-write.table(old, file=filename,sep="\t",append=FALSE,quote=FALSE)
+write.table(old, file=filename,sep="\t",append=FALSE,quote=FALSE,row.names=FALSE)
 
 
