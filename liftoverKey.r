@@ -39,16 +39,17 @@ old$new_poss<-as.numeric(NA)
 old$new_pose<-as.numeric(NA)
 old$new_coord<-as.character(NA)
 
+count<-0
 for (i in 1:nrow(old)){
-    if (old[i]$old_coord %in% unmapped$coord){
-        next
+    if (old[i]$old_coord %in% unmapped$coord){ 
+###old coordinate didn't get mapped so nothing to enter for key, stays NA
+        count<-count+1
     } else{
-        old[i]$new_chr<-new[i]$new_chr
-        old[i]$new_poss<-new[i]$new_poss
-        old[i]$new_pose<-new[i]$new_pose
-        old[i]$new_coord<-new[i]$new_coord
+        old[i]$new_chr<-new[i-count]$new_chr
+        old[i]$new_poss<-new[i-count]$new_poss
+        old[i]$new_pose<-new[i-count]$new_pose
+        old[i]$new_coord<-new[i-count]$new_coord
     }
-    
 }
  
 #write output
