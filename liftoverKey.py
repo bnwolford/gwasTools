@@ -54,7 +54,7 @@ def make_key(new,old,unmap,prefix):
             line_list=ls.split("\t")
             old_coord=":".join([line_list[0],line_list[1],line_list[2]])
             with open(results_filename, "w") as out:
-                out.write("\t".join("old_chrom","old_posStart","old_posEnd","old_coord","new_chrom","new_posStart","new_posEnd","new_coord"))
+                out.write("\t".join(["old_chrom","old_posStart","old_posEnd","old_coord","new_chrom","new_posStart","new_posEnd","new_coord"]))
                 if old_coord in unmap: #old coordiante didn't get mapped so NA for key
                     ucount+=1
                     lcount+=1
