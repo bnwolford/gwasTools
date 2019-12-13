@@ -38,7 +38,7 @@ def read_bed(f):
             ls=line.rstrip()
             if not ls.startswith("#"): #ignore comment lines 
                 line_list=ls.split("\t")
-                my_dict[":".join([line_list[0],line_list[1],line_list[2]])]=line_list
+                my_dict[":".join([line_list[0],line_list[2]])]=line_list
     bed_file.close()
     return(my_dict)
 
@@ -54,7 +54,7 @@ def make_key(new,old,unmap,prefix):
             for line in new_file:
                 ls=line.rstrip()
                 line_list=ls.split("\t")
-                old_coord=":".join([line_list[0],line_list[1],line_list[2]])
+                old_coord=":".join([line_list[0],line_list[2]]) #chr:posE
                 if old_coord in unmap: #old coordiante didn't get mapped so NA for key
                     ucount+=1
                     lcount+=1
@@ -63,7 +63,7 @@ def make_key(new,old,unmap,prefix):
                     lcount+=1
                     nl=linecache.getline(new,lcount-ucount) #new line
                     nl_list=nl.rstrip().split("\t")
-                    out.write('{}\n'.format("\t".join(["\t".join(line_list),old_coord,"\t".join(nl_list),":".join([nl_list[0],nl_list[1],nl_list[2]])])))
+                    out.write('{}\n'.format("\t".join(["\t".join(line_list),old_coord,"\t".join(nl_list),":".join([nl_list[0],nl_list[2]])])))
 
     out.close()
     new_file.close()
