@@ -48,26 +48,26 @@ def make_key(new,old,unmap,prefix):
     ucount=0 #unampped count
     lcount=0 #line count
     results_filename=".".join([prefix,"txt"])
-    with command as new_file:
-        for line in new_file:
-            ls=line.rstrip()
-            line_list=ls.split("\t")
-            old_coord=":".join([line_list[0],line_list[1],line_list[2]])
-            with open(results_filename, "w") as out:
-                out.write('{}\n'.format("\t".join(["old_chrom","old_posStart","old_posEnd","old_coord","new_chrom","new_posStart","new_posEnd","new_coord"])))
+    with open(results_filename, "w") as out:
+        out.write('{}\n'.format("\t".join(["old_chrom","old_posStart","old_posEnd","old_coord","new_chrom","new_posStart","new_posEnd","new_coord"])))
+        with command as new_file:
+            for line in new_file:
+                ls=line.rstrip()
+                line_list=ls.split("\t")
+                old_coord=":".join([line_list[0],line_list[1],line_list[2]])
                 if old_coord in unmap: #old coordiante didn't get mapped so NA for key
                     ucount+=1
                     lcount+=1
-                    out.write('{}\n'.format("\t".join(["\t".join(line_list),old_coord,"\t".join(["NA","NA","NA","NA"])])+"\n"))
+                    out.write('{}\n'.format("\t".join(["\t".join(line_list),old_coord,"\t".join(["NA","NA","NA","NA"])])))
                 else:
                     lcount+=1
                     nl=linecache.getline(new,lcount-ucount) #new line
                     nl_list=nl.rstrip().split("\t")
-                    out.write('{}\n'.format("\t".join(["\t".join(line_list),old_coord,"\t".join(nl_list),":".join([nl_list[0],nl_list[1],nl_list[2]])])+"\n"))
+                    out.write('{}\n'.format("\t".join(["\t".join(line_list),old_coord,"\t".join(nl_list),":".join([nl_list[0],nl_list[1],nl_list[2]])])))
 
-    new_file.close()
     out.close()
-
+    new_file.close()
+                    
 ###############################
 ######## MAIN ###############
 ############################
