@@ -54,16 +54,16 @@ def make_key(new,old,unmap,prefix):
             line_list=ls.split("\t")
             old_coord=":".join([line_list[0],line_list[1],line_list[2]])
             with open(results_filename, "w") as out:
-                out.write("\t".join(["old_chrom","old_posStart","old_posEnd","old_coord","new_chrom","new_posStart","new_posEnd","new_coord"]))
+                out.write('{}\n'.format("\t".join(["old_chrom","old_posStart","old_posEnd","old_coord","new_chrom","new_posStart","new_posEnd","new_coord"])))
                 if old_coord in unmap: #old coordiante didn't get mapped so NA for key
                     ucount+=1
                     lcount+=1
-                    out.write("\t".join(["\t".join(line_list),old_coord,"\t".join(["NA","NA","NA","NA"])]))
+                    out.write('{}\n'.format("\t".join(["\t".join(line_list),old_coord,"\t".join(["NA","NA","NA","NA"])])+"\n"))
                 else:
                     lcount+=1
                     nl=linecache.getline(new,lcount-ucount) #new line
                     nl_list=nl.rstrip().split("\t")
-                    out.write("\t".join(["\t".join(line_list),old_coord,"\t".join(nl_list),":".join([nl_list[0],nl_list[1],nl_list[2]])]))
+                    out.write('{}\n'.format("\t".join(["\t".join(line_list),old_coord,"\t".join(nl_list),":".join([nl_list[0],nl_list[1],nl_list[2]])])+"\n"))
 
     new_file.close()
     out.close()
