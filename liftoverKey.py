@@ -47,13 +47,14 @@ def make_key(new,old,unmap,prefix):
     command=open_zip(old)
     ucount=0 #unampped count
     lcount=0 #line count
-    results_filename=".".join([prefix,".txt"])
+    results_filename=".".join([prefix,"txt"])
     with command as new_file:
         for line in new_file:
             ls=line.rstrip()
             line_list=ls.split("\t")
             old_coord=":".join([line_list[0],line_list[1],line_list[2]])
             with open(results_filename, "w") as out:
+                out.write("\t".join("old_chrom","old_posStart","old_posEnd","old_coord","new_chrom","new_posStart","new_posEnd","new_coord"))
                 if old_coord in unmap: #old coordiante didn't get mapped so NA for key
                     ucount+=1
                     lcount+=1
