@@ -35,7 +35,9 @@ option_list <- list(
   make_option("--log10p", type="logical", default=F,
     help="Input p.value column with -log10(p.value) [default=F]"),    
   make_option("--maintitle", type="character", default="",
-    help="Plot title"),
+              help="Plot title"),
+  make_option("--significance",type="numeric",
+              help="Significance threshold. Bonferroni on tests used if not provided."),
   make_option("--pdf",type="logical",default=F,
     help="Plot as pdf [default=F]")
 )
@@ -142,10 +144,16 @@ if(!opt$log10p) {
 
 gwas<-gwas[complete.cases(gwas),] #remove NAs
 
-ntest<-nrow(gwas) #print genes 
-bon<-0.05/ntest
-yLine<-c(-log10(bon))
+ntest<-nrow(gwas) #number of genes tested
 print(ntest)
+if (is.null(opt$significance)){
+    ##bonferroni line on number of tests 
+    bon<-0.05/ntest
+    yLine<-c(-log10(bon))
+} else {
+    yLine<-c(-log10(opt$significance))
+}
+
 
 
 ## histogram of number of markers per category
@@ -270,6 +278,9 @@ if (opt$pdf==TRUE) { #plot as pdf, default for height/width/point size are custo
 		# identity line & genome-wide significance line
 		lines(axislim,axislim,col = "grey",lwd=1.5,lty=2)
 		abline(h=yLine,col=colLine,lwd=1.5,lty=2)
+
+                text(0,0,paste(sep=" ",expression(lambda),format(lambda,digits=3)))
+                
 	}
 dev.off()
 
