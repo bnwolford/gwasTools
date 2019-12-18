@@ -13,6 +13,7 @@ library("optparse")
 library("ggplot2")
 library("tidyr")
 
+
 option_list <- list(
   make_option("--input", type="character", default="",
     help="Input file, tab delimited, can be gzipped, requires MAF and PVALUE columns"),   
@@ -256,7 +257,11 @@ if (opt$pdf==TRUE) { #plot as pdf, default for height/width/point size are custo
 		abline(h=ifelse(yLine<opt$break.top,
 			yLine,
 			rescale(yLine)),
-			col=colLine,lwd=1.5,lty=2)
+                       col=colLine,lwd=1.5,lty=2)
+                                        #add lambda and n tests label under x axis
+            val=format(lambda,digits=3)
+            par(oma=c(2,0,0,0))
+            mtext(outer=TRUE,bquote(lambda~"="~.(val)~", N="~.(ntest)),side=1,line=1)
 
 	# plot version with single y axes
 	} else {
@@ -278,9 +283,10 @@ if (opt$pdf==TRUE) { #plot as pdf, default for height/width/point size are custo
 		# identity line & genome-wide significance line
 		lines(axislim,axislim,col = "grey",lwd=1.5,lty=2)
 		abline(h=yLine,col=colLine,lwd=1.5,lty=2)
-
-                text(0,0,paste(sep=" ",expression(lambda),format(lambda,digits=3)))
-                
+                #add lambda and n tests label under x axis 
+                val=format(lambda,digits=3)
+                par(oma=c(2,0,0,0))
+                mtext(outer=TRUE,bquote(lambda~"="~.(val)~", N="~.(ntest)),side=1,line=1)
 	}
 dev.off()
 
