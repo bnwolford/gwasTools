@@ -51,8 +51,8 @@ col2<-opt$pvalue2
 file1<-open(opt$file1)
 file2<-open(opt$file2)
 
-print(head(file1))
-print(head(file2))
+#print(head(file1))
+#print(head(file2))
 
 options(digits=8) #set digits for summary
 
@@ -62,13 +62,15 @@ file1$rank<-seq.int(nrow(file1))
 file2$rank<-seq.int(nrow(file2))
 
 df<-merge(file1,file2,by=opt$merge)
+df$diff<-ifelse(df$rank.x-df$rank.y>1000,TRUE,FALSE)
+#sub<-head(df,100)
 
 
 
 #write output
 filename<-paste(sep="_",opt$prefix,"rankChange.pdf")
-pdf(filename,height=3,width=3)
-ggplot(df,aes(x=rank.x,y=rank.y,label=Gene) + geom_point() + theme_bw()
+pdf(filename,height=5,width=5,useDingbats=FALSE)
+ggplot(df,aes(x=rank.x,y=rank.y)) + geom_point(alpha=0.5) + theme_bw() + geom_text_repel(data=df[df$diff==TRUE,],aes(label=get(opt$merge)),size=2) + geom_abline(linetype="dashed",color="red",slope=1,intercept=0) + labs(x=opt$file1,y=opt$file2)
 dev.off()
 
 
