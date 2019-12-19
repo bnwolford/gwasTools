@@ -157,12 +157,13 @@ def check_data(bcf,out,vcf):
                     tmp.write("\t".join([chrom,str(int(coords[1])-1),coords[1]])) #write bed file with coordinate
                     marker_dict[line_list[1]]=[line_list[10],line_list[6]] #save to dictionary to reference later 
         f.close()
-
-
+        
     #bcftools query
     bcf_fn=".".join([out,"bcftools.txt"])
     subprocess.call([bcf,"query",vcf,"-R",marker_bed.name,"-f","%CHROM\t%POS\t%ID\n","-o",bcf_fn])
     tmp.close()
+
+    print(marker_dict)
     
     #match back up with coords so we know what snp of interest it pertains to
     final_fn=".".join([out,"study.txt"])
@@ -174,6 +175,7 @@ def check_data(bcf,out,vcf):
                 line_list=ls.split("\t")
                 coordinate="".join(["chr",line_list[0],":",line_list[1]])
                 if coordinate in marker_dict.keys():
+                    print(marker_dict[coordinate])
                     snp_of_interest=marker_dict[coordinate][0] #match up with snp of interest rsID
                     r2=marker_dict[coordinate][1]
                     final.write("\t".join(["\t".join(line_list),snp_of_interest,r2]))
