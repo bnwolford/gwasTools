@@ -178,6 +178,7 @@ for(f in 1:length(freqtable)){
 if (opt$all){
     for (q in seq(.1,.9,0.1)){
         lambda_all<-lambdaGC(gwas[[ycol]],q)
+        nvar<-nrow(gwas)
         lambda_df<-rbind(lambda_df,data.frame(lambda=lambda_all,frequency_bin="all",quantile=q,Nvar=nvar)) #make lambda data frame
     }
 }
