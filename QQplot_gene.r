@@ -123,9 +123,9 @@ colLine <- c("red")
 
 #open file, even if zipped
 if (grepl('.gz',opt$input)) {
-    gwas <- fread(paste(sep=" ","zcat",opt$input),header=T)
+    gwas <- fread(paste(sep=" ","zcat",opt$input),header=T,fill=TRUE)
 } else {
-    gwas <- fread(opt$input, header=T)
+    gwas <- fread(opt$input, header=T,fill=TRUE)
 }
 
 ## write out top 50 genes
